@@ -1,0 +1,501 @@
+/* 基礎設定與深色模式 */
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --input-bg: #2c2c2c;
+    --border-color: #3f3f3f;
+    --text-main: #ffffff;
+    --text-sub: #b3b3b3;
+    --border-radius: 12px;
+
+    /* 分類顏色 */
+    --color-vocab: #4ade80;
+    --color-grammar: #60a5fa;
+    --color-idiom: #f472b6;
+    --color-other: #fb923c;
+
+    /* 按鈕顏色 */
+    --color-danger: #ff6b6b;
+    --color-btn-dark: #333;
+    --color-btn-dark-active: #444;
+
+    --tabbar-height: 65px;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-bottom: calc(var(--tabbar-height) + 20px);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgba(18, 18, 18, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+    font-size: 18px;
+    margin: 0;
+    font-weight: 600;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 60px auto 0 auto;
+    padding: 0 15px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    color: var(--text-sub);
+    font-size: 14px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 50px;
+    /* Below app-header */
+    background-color: var(--bg-color);
+    padding: 10px 0;
+    z-index: 90;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+    margin-top: -10px;
+    /* To offset some padding if needed */
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
+}
+
+input[type="text"],
+textarea,
+select {
+    width: 100%;
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+}
+
+/* 針對會自動長高的 textarea 設定 */
+textarea {
+    resize: none;
+    min-height: 80px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--color-grammar);
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+}
+
+.submit-btn {
+    background-color: #ffffff;
+    color: #121212;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:active {
+    background-color: #cccccc;
+}
+
+.search-container {
+    position: sticky;
+    top: 51px;
+    background-color: var(--bg-color);
+    padding: 10px 0;
+    z-index: 90;
+    margin-bottom: 10px;
+}
+
+#listContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.list-group-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.item-card {
+    background-color: var(--card-bg);
+    padding: 16px;
+    border-radius: 20px;
+    margin-bottom: 0px; /* Reset because we use gap now */
+    border: 1px solid transparent;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Soft shadow */
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.item-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background-color: rgba(255,255,255,0.1);
+}
+
+.item-card:active {
+    transform: scale(0.98);
+}
+
+.item-card:hover {
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.item-card .delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.item-card:hover .delete-btn {
+    opacity: 1;
+}
+
+.category-badge {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.8);
+    text-transform: uppercase;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.cat-vocab { background-color: var(--color-vocab); }
+.cat-grammar { background-color: var(--color-grammar); }
+.cat-idiom { background-color: var(--color-idiom); }
+.cat-other { background-color: var(--color-other); }
+
+.inline-calendar {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px; /* compact */
+    font-weight: bold;
+    color: var(--text-main);
+    font-size: 11px; /* smaller header */
+}
+
+.calendar-header button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-sub);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.calendar-header button:active {
+    background: rgba(0,0,0,0.05);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px; /* compact */
+    text-align: center;
+    font-size: 11px; /* smaller text */
+}
+
+.calendar-day-name {
+    font-weight: bold;
+    color: var(--text-sub);
+    margin-bottom: 2px;
+    font-size: 10px;
+}
+
+.calendar-cell {
+    position: relative;
+    padding: 4px 0;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.calendar-cell:hover:not(.empty) {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.calendar-cell.active {
+    background-color: var(--color-grammar); /* Theme color */
+    color: #121212;
+    font-weight: bold;
+}
+
+.calendar-cell .dot {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    background-color: var(--color-danger);
+    border-radius: 50%;
+}
+
+.calendar-cell.empty {
+    cursor: default;
+}
+
+.list-group-header {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 20px 0 10px 0;
+    color: var(--text-main);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 5px;
+    background-color: transparent;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-group-header:hover {
+    color: var(--text-primary);
+}
+
+.pill-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.pill-btn {
+    background-color: var(--input-bg);
+    color: var(--text-sub);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.pill-btn.active {
+    background-color: var(--color-grammar);
+    color: #121212;
+    border-color: var(--color-grammar);
+}
+
+.jp-text {
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.delete-btn:active {
+    background-color: rgba(255, 107, 107, 0.2);
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 快捷按鈕區塊 */
+.jp-action-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.action-btn {
+    background-color: var(--color-btn-dark);
+    color: var(--text-main);
+    border: 1px solid #444;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s;
+}
+
+.action-btn:active {
+    background-color: var(--color-btn-dark-active);
+}
+
+.template-select {
+    background-color: var(--color-btn-dark);
+    color: var(--text-main);
+    border: 1px solid #444;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    max-width: 150px;
+}
+
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--tabbar-height);
+    background-color: rgba(26, 26, 26, 0.98);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-sub);
+    background: none;
+    border: none;
+    padding: 10px 0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.tab-item.active {
+    color: var(--color-grammar);
+}
+
+.tab-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.tab-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* SweetAlert 客製化調整 */
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm) {
+    background-color: var(--color-grammar);
+    color: #121212;
+}
+
+div:where(.swal2-container) .swal2-input,
+div:where(.swal2-container) .swal2-textarea {
+    font-size: 14px !important;
+}
+
+/* 針對有自定義捲動條的 Swal 彈出視窗，強制隱藏預設的外層溢出，讓內層捲動條一開始就出現 */
+.custom-scroll-container {
+    overflow: hidden !important;
+}
