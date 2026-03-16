@@ -235,8 +235,8 @@ function renderCategories() {
             inputSelect.value = selectedCat;
         }
 
-        // 如果輸入頁目前有選擇分類，根據該分類渲染子分類選單
-        renderSubcategoryOptions('categoryInput', 'subcategoryInput', selectedSubcat);
+        // 如果輸入頁目前有選擇分類，根據該分類渲染子分類選單並檢查是否顯示英文輸入
+        handleCategoryChange();
     }
 
     const detailContainer = document.getElementById('detailContainer');
@@ -660,6 +660,21 @@ function setCatFilter(cat) {
     renderList();
 }
 
+window.handleCategoryChange = function() {
+    renderSubcategoryOptions('categoryInput', 'subcategoryPills');
+    const catSelect = document.getElementById('categoryInput');
+    const enGroup = document.getElementById('enInputGroup');
+    const jpAudioBtn = document.getElementById('jpAudioBtn');
+    
+    if (catSelect && catSelect.value === 'vocab') {
+        if(enGroup) enGroup.style.display = 'block';
+        if(jpAudioBtn) jpAudioBtn.style.display = 'inline-block';
+    } else {
+        if(enGroup) enGroup.style.display = 'none';
+        if(jpAudioBtn) jpAudioBtn.style.display = 'none';
+    }
+};
+
 // ===== 核心功能 =====
 
 // 1. Textarea 自動調整高度
@@ -801,12 +816,12 @@ function switchPage(pageName) {
 function saveItem() {
     const titleText = document.getElementById('titleInput').value.trim();
     const jpText = document.getElementById('jpInput').value.trim();
+    const enText = document.getElementById('enInput') ? document.getElementById('enInput').value.trim() : '';
     const noteText = document.getElementById('noteInput').value.trim();
     const category = document.getElementById('categoryInput').value;
-    const subcategory = document.getElementById('subcategoryInput') ? document.getElementById('subcategoryInput').value : '';
 
-    if (!jpText) {
-        Swal.fire({ icon: 'error', title: 'Oops...', text: '請輸入日文內容喔！' });
+    if (!jpText && !enText) {
+        Swal.fire({ icon: 'error', title: 'Oops...', text: '請輸入內容喔！' });
         return;
     }
 
@@ -814,9 +829,10 @@ function saveItem() {
         id: Date.now(),
         title: titleText,
         jp: jpText,
+        en: enText,
         note: noteText,
         cat: category,
-        subcat: subcategory, // 新增 subcategory 屬性
+        subcats: Array.from(currentInputSubcats), // 新增 subcats 陣列
         createdAt: new Date().toISOString()
     };
 
@@ -825,11 +841,16 @@ function saveItem() {
 
     document.getElementById('titleInput').value = '';
     document.getElementById('jpInput').value = '';
+    if (document.getElementById('enInput')) document.getElementById('enInput').value = '';
     document.getElementById('noteInput').value = '';
 
     // 重置輸入框高度
     document.getElementById('jpInput').style.height = '80px';
+    if (document.getElementById('enInput')) document.getElementById('enInput').style.height = '80px';
     document.getElementById('noteInput').style.height = '80px';
+
+    currentInputSubcats.clear();
+    handleCategoryChange();
 
     switchPage('list');
 }
@@ -949,17 +970,16 @@ function renderList() {
         }
 
         // 第二層過濾：子分類 (如果有勾選任何子分類，且該筆記的主分類在可見的子分類群組內，才過濾子分類)
-        // 邏輯：如果有打勾子分類，且該項目的子分類「沒有」被勾選，就濾掉
-        // 但如果該主分類下「完全沒有」被打勾的子分類，代表使用者是想看這個主分類的「全部」
         if (selectedFilterSubcats.size > 0) {
-            // 檢查這個 item 的主分類，目前有沒有勾選任何對應的子分類
             const catData = categoryMap[item.cat];
             if (catData && catData.subcats) {
                 const hasAnySubcatSelectedForThisCat = catData.subcats.some(sub => selectedFilterSubcats.has(sub.id));
 
                 if (hasAnySubcatSelectedForThisCat) {
-                    // 如果這個主分類有勾選子分類，那這筆筆記的子分類就必須被勾選
-                    if (!item.subcat || !selectedFilterSubcats.has(item.subcat)) {
+                    const itemSubcats = item.subcats || (item.subcat ? [item.subcat] : []);
+                    const matchesSelectedSubcat = itemSubcats.some(sub => selectedFilterSubcats.has(sub));
+                    
+                    if (!matchesSelectedSubcat) {
                         return false;
                     }
                 }
@@ -984,9 +1004,13 @@ function renderList() {
         if (sCat && categoryMap[item.cat] && categoryMap[item.cat].label.toLowerCase().includes(keyword)) match = true;
 
         // 子分類關鍵字搜尋
-        if (sCat && item.subcat && categoryMap[item.cat] && categoryMap[item.cat].subcats) {
-            const subData = categoryMap[item.cat].subcats.find(s => s.id === item.subcat);
-            if (subData && subData.label.toLowerCase().includes(keyword)) match = true;
+        const itemSubcats = item.subcats || (item.subcat ? [item.subcat] : []);
+        if (sCat && itemSubcats.length > 0 && categoryMap[item.cat] && categoryMap[item.cat].subcats) {
+            const hasSubcatMatch = itemSubcats.some(subId => {
+                const subData = categoryMap[item.cat].subcats.find(s => s.id === subId);
+                return subData && subData.label.toLowerCase().includes(keyword);
+            });
+            if (hasSubcatMatch) match = true;
         }
 
         if (sJp && item.jp && item.jp.toLowerCase().includes(keyword)) match = true;
@@ -1051,12 +1075,14 @@ function renderList() {
         let subcatBadge = '';
         const textColor = catInfo.customColor ? getContrastYIQ(catInfo.customColor) : '#ffffff';
 
-        if (item.subcat && catInfo.subcats) {
-            const subData = catInfo.subcats.find(s => s.id === item.subcat);
-            if (subData) {
-                // 子分類也用一個小小的 Badge 顯示 (繼承主分類顏色，但用較淡的背景與外框，或是直接延用主分類顏色)
-                subcatBadge = `<span class="category-badge ${catInfo.class || ''}" style="${catInfo.customColor ? `background-color:${catInfo.customColor}; color:${textColor}; opacity:0.8; margin-left:6px;` : 'opacity:0.8; margin-left:6px;'}">${subData.label}</span>`;
-            }
+        const itemSubcats = item.subcats || (item.subcat ? [item.subcat] : []);
+        if (itemSubcats.length > 0 && catInfo.subcats) {
+            itemSubcats.forEach(subId => {
+                const subData = catInfo.subcats.find(s => s.id === subId);
+                if (subData) {
+                    subcatBadge += `<span class="category-badge ${catInfo.class || ''}" style="${catInfo.customColor ? `background-color:${catInfo.customColor}; color:${textColor}; opacity:0.8; margin-left:6px;` : 'opacity:0.8; margin-left:6px;'}">${subData.label}</span>`;
+                }
+            });
         }
 
         const card = document.createElement('div');
@@ -1070,7 +1096,7 @@ function renderList() {
         card.onclick = () => openDetail(item.id);
         card.innerHTML = `
             <div class="item-header">
-                <div>
+                <div style="flex:1; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
                     <span class="category-badge ${catInfo.class || ''}" style="${catInfo.customColor ? `background-color:${catInfo.customColor}; color:${textColor};` : ''}">${catInfo.label}</span>
                     ${subcatBadge}
                 </div>
@@ -1116,14 +1142,14 @@ function openDetail(id) {
 
         <div class="input-group">
             <label>分類</label>
-            <select id="detailCat_${item.id}" onchange="autoSave(${item.id}, 'cat', this.value); renderSubcategoryOptions('detailCat_${item.id}', 'detailSubcat_${item.id}'); autoSave(${item.id}, 'subcat', '');">
+            <select id="detailCat_${item.id}" onchange="autoSave(${item.id}, 'cat', this.value); renderSubcategoryOptions('detailCat_${item.id}', 'detailSubcatPills_${item.id}', ${item.id}); autoSave(${item.id}, 'subcats', []);">
                 ${Object.entries(categoryMap).map(([key, value]) => `<option value="${key}" ${item.cat === key ? 'selected' : ''}>${value.label}</option>`).join('')}
             </select>
             
-            <label style="margin-top:10px;">子分類 (選填)</label>
-            <select id="detailSubcat_${item.id}" onchange="autoSave(${item.id}, 'subcat', this.value)">
+            <label style="margin-top:10px;">子分類 (選填 - 可複選)</label>
+            <div id="detailSubcatPills_${item.id}" style="display:flex; flex-wrap:wrap; gap:6px; min-height: 38px; padding: 5px 0;">
                 <!-- 由 JS 動態生成 -->
-            </select>
+            </div>
             <button class="action-btn" onclick="manageCategories()" style="margin-top: 8px;">管理分類</button>
         </div>
 
@@ -1132,6 +1158,16 @@ function openDetail(id) {
             <input type="text" value="${item.title || ''}" oninput="autoSave(${item.id}, 'title', this.value)" placeholder="這篇筆記的標題...">
         </div>
 
+        ${(item.cat === 'vocab' || item.en !== undefined) ? `
+        <div class="input-group">
+            <label>英文內容</label>
+            <div class="jp-action-bar">
+                <button class="action-btn" onclick="playAudio('detailEn_${item.id}', 'en-US')" title="朗讀英文">🔊 朗讀英文</button>
+                <button class="action-btn" onclick="copyToClipboard('detailEn_${item.id}')" style="background-color:var(--input-bg);">複製內容</button>
+            </div>
+            <textarea id="detailEn_${item.id}" oninput="autoResize(this); autoSave(${item.id}, 'en', this.value)" placeholder="例：The hotel can accommodate up to 500 guests.">${item.en || ''}</textarea>
+        </div>` : ''}
+
         <div class="input-group">
             <label>日文內容</label>
             <div class="jp-action-bar">
@@ -1139,6 +1175,7 @@ function openDetail(id) {
                 <button class="action-btn" onclick="insertTemplate('detailJp_${item.id}', 'detailTemplateSelect', ${item.id})">插入模板</button>
                 <button class="action-btn" onclick="manageTemplates()">管理模板</button>
                 <button class="action-btn" onclick="copyToClipboard('detailJp_${item.id}')" style="background-color:var(--input-bg);">複製內容</button>
+                ${item.cat === 'vocab' ? `<button class="action-btn" onclick="playAudio('detailJp_${item.id}', 'ja-JP')" title="朗讀日文">🔊 朗讀日文</button>` : ''}
             </div>
             <textarea id="detailJp_${item.id}" oninput="autoResize(this); autoSave(${item.id}, 'jp', this.value)" placeholder="例：お手数をおかけしますが">${item.jp || ''}</textarea>
         </div>
@@ -1162,34 +1199,91 @@ function openDetail(id) {
     // 進入詳細頁面時，稍微延遲一下，自動撐高已經有內容的 textarea，同時渲染模板選單與子分類
     setTimeout(() => {
         autoResize(document.getElementById(`detailJp_${item.id}`));
+        if (document.getElementById(`detailEn_${item.id}`)) autoResize(document.getElementById(`detailEn_${item.id}`));
         autoResize(document.getElementById(`detailNote_${item.id}`));
-        renderSubcategoryOptions(`detailCat_${item.id}`, `detailSubcat_${item.id}`, item.subcat);
+        renderSubcategoryOptions(`detailCat_${item.id}`, `detailSubcatPills_${item.id}`, item.id);
         renderTemplateSelects();
     }, 50);
 }
 
-function renderSubcategoryOptions(catSelectId, subcatSelectId, selectedSubcatId = '') {
+// Keep track of which subcategories are currently selected in the Input Form
+let currentInputSubcats = new Set();
+
+function renderSubcategoryOptions(catSelectId, pillContainerId, itemId = null) {
     const catSelect = document.getElementById(catSelectId);
-    const subcatSelect = document.getElementById(subcatSelectId);
-    if (!catSelect || !subcatSelect) return;
+    const pillContainer = document.getElementById(pillContainerId);
+    if (!catSelect || !pillContainer) return;
 
     const selectedCatId = catSelect.value;
     const catInfo = categoryMap[selectedCatId];
 
-    subcatSelect.innerHTML = '<option value="">無</option>'; // Default option
-    subcatSelect.disabled = true; // Disable by default
+    pillContainer.innerHTML = '';
+    
+    // If it's the main input form, clear the set when category changes
+    if (!itemId) {
+        currentInputSubcats.clear();
+    }
 
-    if (catInfo && catInfo.subcats && catInfo.subcats.length > 0) {
-        catInfo.subcats.forEach(subcat => {
-            const option = document.createElement('option');
-            option.value = subcat.id;
-            option.innerText = subcat.label;
-            if (subcat.id === selectedSubcatId) {
-                option.selected = true;
-            }
-            subcatSelect.appendChild(option);
-        });
-        subcatSelect.disabled = false;
+    if (!catInfo || !catInfo.subcats || catInfo.subcats.length === 0) {
+        pillContainer.innerHTML = '<span style="color:var(--text-sub); font-size:13px; margin:auto 0;">無子分類設定</span>';
+        return;
+    }
+
+    // Determine the current selected subcats array depending on context (Input vs Detail View)
+    let activeSet = new Set();
+    if (itemId) {
+        const item = jpData.find(i => i.id === itemId);
+        if (item && item.subcats && Array.isArray(item.subcats)) {
+            activeSet = new Set(item.subcats);
+        } else if (item && item.subcat) {
+            // backwards compatibility for single subcat string
+            activeSet = new Set([item.subcat]);
+            item.subcats = [item.subcat]; 
+        }
+    } else {
+        activeSet = currentInputSubcats;
+    }
+
+    catInfo.subcats.forEach(subcat => {
+        const btn = document.createElement('button');
+        const isActive = activeSet.has(subcat.id);
+        btn.className = `pill-btn ${isActive ? 'active' : ''}`;
+        btn.innerText = subcat.label;
+        btn.onclick = (e) => {
+            e.preventDefault();
+            toggleSubcatPill(subcat.id, btn, itemId);
+        };
+        pillContainer.appendChild(btn);
+    });
+}
+
+window.toggleSubcatPill = function(subcatId, btnEl, itemId = null) {
+    btnEl.classList.toggle('active');
+    const isNowActive = btnEl.classList.contains('active');
+
+    if (itemId) {
+        // Detail View logic
+        const item = jpData.find(i => i.id === itemId);
+        if (!item) return;
+        let subcatsArray = item.subcats || [];
+        if (!Array.isArray(subcatsArray)) {
+            subcatsArray = item.subcat ? [item.subcat] : [];
+        }
+
+        if (isNowActive) {
+            if (!subcatsArray.includes(subcatId)) subcatsArray.push(subcatId);
+        } else {
+            subcatsArray = subcatsArray.filter(id => id !== subcatId);
+        }
+        item.subcats = subcatsArray;
+        saveToLocal();
+    } else {
+        // Main Input form logic
+        if (isNowActive) {
+            currentInputSubcats.add(subcatId);
+        } else {
+            currentInputSubcats.delete(subcatId);
+        }
     }
 }
 
@@ -1276,3 +1370,35 @@ function renderCalendar() {
     html += `</div>`;
     calendarEl.innerHTML = html;
 }
+
+// --- Text to Speech (TTS) Logic ---
+window.playAudio = function(elementId, lang = '') {
+    const el = document.getElementById(elementId);
+    if (!el || !el.value) return;
+    playAudioText(el.value, lang);
+};
+
+window.playAudioText = function(text, lang = '') {
+    if (!text || text.trim() === '') return;
+    
+    // Stop any currently playing audio
+    window.speechSynthesis.cancel();
+
+    // Remove markdown-like brackets for cleaner reading
+    const cleanText = text.replace(/【.*?】/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    
+    if (lang) {
+        utterance.lang = lang;
+    } else {
+        // Attempt to auto-detect English vs Japanese based on character presence
+        const hasKana = /[\u3040-\u309f\u30a0-\u30ff]/.test(cleanText);
+        utterance.lang = hasKana ? 'ja-JP' : 'en-US';
+    }
+    
+    // Slightly slower rate for better learning comprehension
+    utterance.rate = 0.9;
+    
+    window.speechSynthesis.speak(utterance);
+};
