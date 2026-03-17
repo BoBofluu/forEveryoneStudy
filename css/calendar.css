@@ -1,76 +1,101 @@
 /* css/calendar.css */
 
+.mini-calendar,
 .inline-calendar {
     background-color: var(--card-bg);
-    border-radius: 10px;
-    padding: 6px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 220px;
+    /* 同步 220px 高度 */
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .calendar-header {
+    flex: 0 0 28px;
+    /* 增加標題列高度 */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px; /* compact */
+    margin-bottom: 6px;
+    /* 增加下方間距 */
     font-weight: bold;
     color: var(--text-main);
-    font-size: 11px; /* smaller header */
+    font-size: 14px;
+    /* 字體微調大 */
 }
 
 .calendar-header button {
     background: transparent;
-    border: none;
+    border: 1px solid #444;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-sub);
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.calendar-header button:active {
-    background: rgba(0,0,0,0.05);
+    padding: 0 10px;
+    border-radius: 6px;
+    height: 24px;
+    display: flex;
+    align-items: center;
 }
 
 .calendar-grid {
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 2px; /* compact */
+    grid-template-rows: 20px repeat(6, 1fr);
+    /* 增加星期列高度至 24px */
+    gap: 2px;
     text-align: center;
-    font-size: 11px; /* smaller text */
+    padding-bottom: 5px;
+    /* 增加底部緩衝 */
 }
 
 .calendar-day-name {
     font-weight: bold;
     color: var(--text-sub);
-    margin-bottom: 2px;
-    font-size: 10px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .calendar-cell {
     position: relative;
-    padding: 4px 0;
     cursor: pointer;
-    border-radius: 6px;
-    transition: background-color 0.2s;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 13px;
+    /* 字體放大至 14px，更清晰 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding-bottom: 10px;
+    /* 將數字顯著往上提 */
 }
 
 .calendar-cell:hover:not(.empty) {
-    background-color: rgba(0,0,0,0.05);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .calendar-cell.active {
-    background-color: var(--color-grammar); /* Theme color */
+    background-color: var(--color-grammar);
     color: #121212;
     font-weight: bold;
 }
 
 .calendar-cell .dot {
     position: absolute;
-    bottom: 2px;
+    bottom: 3px;
+    /* 紅點懸浮感更好 */
     left: 50%;
     transform: translateX(-50%);
-    width: 3px;
-    height: 3px;
+    width: 4px;
+    height: 4px;
     background-color: var(--color-danger);
     border-radius: 50%;
 }

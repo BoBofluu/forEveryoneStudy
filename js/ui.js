@@ -38,6 +38,114 @@ function switchPage(pageName) {
     window.scrollTo(0, 0);
 }
 
+window.toggleSearchCheckboxes = function(state) {
+    const container = document.getElementById('searchOptionsContainer');
+    if (!container) return;
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = state);
+    renderList();
+};
+
+window.openFilterModal = function() {
+    let html = `
+        <div class="filter-modal-content" style="text-align:left; max-height:500px; overflow-y:auto; padding:15px; background:var(--bg-color);">
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="margin:0; font-size:18px; color:var(--text-main);">篩選分類</h3>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="toggleAllFilters(true)" style="background:var(--color-grammar); border:none; color:#121212; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">全選</button>
+                        <button onclick="toggleAllFilters(false)" style="background:var(--color-danger); border:none; color:white; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">清除</button>
+                    </div>
+                </div>
+                
+                ${Object.entries(categoryMap).map(([key, value]) => {
+                    const isCatChecked = selectedFilterCats.has(key) ? 'checked' : '';
+                    const catColor = value.customColor || 'var(--color-grammar)';
+                    return `
+                    <div style="margin-bottom:25px; background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; border:1px solid #333;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <label style="display:flex; align-items:center; cursor:pointer; font-size:16px; font-weight:bold; color:var(--text-main); margin:0;">
+                                <input type="checkbox" data-cat="${key}" onchange="handleCatToggle('${key}', this.checked)" ${isCatChecked} style="width:20px; height:20px; margin-right:10px;">
+                                <span class="category-badge ${value.class || ''}" style="background-color:${catColor}; color:#000;">${value.label}</span>
+                            </label>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="toggleSubcatInCat('${key}', true)" style="font-size:11px; background:#555; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">子全選</button>
+                                <button onclick="toggleSubcatInCat('${key}', false)" style="font-size:11px; background:#555; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">子清除</button>
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:10px; padding-left:5px;">
+                            ${(value.subcats || []).map(sub => {
+                                const isSubChecked = selectedFilterSubcats.has(sub.id) ? 'checked' : '';
+                                return `
+                                <label class="pill-checkbox" style="display:flex; align-items:center; cursor:pointer; font-size:13px; color:var(--text-sub); background:rgba(255,255,255,0.05); padding:6px 12px; border-radius:20px; border:1px solid #444; transition: 0.2s;">
+                                    <input type="checkbox" data-cat-parent="${key}" data-sub="${sub.id}" onchange="handleSubcatToggle('${sub.id}', this.checked); this.parentElement.style.borderColor = this.checked ? 'var(--color-grammar)' : '#444';" ${isSubChecked} style="width:auto; margin-right:6px;">
+                                    ${sub.label}
+                                </label>
+                                `;
+                            }).join('')}
+                            ${(value.subcats || []).length === 0 ? '<span style="font-size:12px; color:#666; font-style:italic;">(此分類無子分類)</span>' : ''}
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+
+    Swal.fire({
+        title: null, // 移除預設標題
+        html: html,
+        width: '600px',
+        showConfirmButton: true,
+        confirmButtonText: '完成篩選',
+        confirmButtonColor: 'var(--color-grammar)',
+        showCloseButton: true,
+        customClass: {
+            htmlContainer: 'custom-scroll-container'
+        }
+    }).then(() => {
+        renderList();
+    });
+};
+
+// 彈窗內的連動邏輯
+window.handleCatToggle = function(catKey, checked) {
+    if (checked) selectedFilterCats.add(catKey);
+    else selectedFilterCats.delete(catKey);
+};
+
+window.handleSubcatToggle = function(subId, checked) {
+    if (checked) selectedFilterSubcats.add(subId);
+    else selectedFilterSubcats.delete(subId);
+};
+
+window.toggleAllFilters = function(state) {
+    for (let k in categoryMap) {
+        if (state) {
+            selectedFilterCats.add(k);
+            (categoryMap[k].subcats || []).forEach(s => selectedFilterSubcats.add(s.id));
+        } else {
+            selectedFilterCats.delete(k);
+            (categoryMap[k].subcats || []).forEach(s => selectedFilterSubcats.delete(s.id));
+        }
+    }
+    // 更新彈窗內的 checkbox 狀態
+    document.querySelectorAll('.filter-modal-content input[type="checkbox"]').forEach(cb => cb.checked = state);
+};
+
+window.toggleSubcatInCat = function(catKey, state) {
+    const catData = categoryMap[catKey];
+    if (!catData || !catData.subcats) return;
+    
+    catData.subcats.forEach(s => {
+        if (state) selectedFilterSubcats.add(s.id);
+        else selectedFilterSubcats.delete(s.id);
+    });
+    
+    // 更新彈窗內該分類下的子 checkbox
+    document.querySelectorAll(`.filter-modal-content input[data-cat-parent="${catKey}"]`).forEach(cb => cb.checked = state);
+};
+
 function renderList() {
     const container = document.getElementById('listContainer');
     if (!document.getElementById('pageList').classList.contains('active')) return;
@@ -48,7 +156,9 @@ function renderList() {
     const sTitle = document.getElementById('searchTitle').checked;
     const sCat = document.getElementById('searchCat').checked;
     const sJp = document.getElementById('searchJp').checked;
+    const sEn = document.getElementById('searchEn').checked;
     const sNote = document.getElementById('searchNote').checked;
+    const sSubcat = document.getElementById('searchSubcat').checked;
     const sortOrder = document.getElementById('sortOrder').value;
 
     container.innerHTML = '';
@@ -59,32 +169,27 @@ function renderList() {
             return false;
         }
 
-        // 第二層過濾：子分類
+        // 第二層過濾：子分類 (如果該主分類下有選中的子分類)
         if (selectedFilterSubcats.size > 0) {
             const catData = categoryMap[item.cat];
-            if (catData && catData.subcats) {
-                const hasAnySubcatSelectedForThisCat = catData.subcats.some(sub => selectedFilterSubcats.has(sub.id));
-
-                if (hasAnySubcatSelectedForThisCat) {
+            if (catData && catData.subcats && catData.subcats.length > 0) {
+                // 檢查該分類下的子分類是否有任何一個被勾選
+                const selectedSubcatsForThisCat = catData.subcats.filter(sub => selectedFilterSubcats.has(sub.id));
+                
+                if (selectedSubcatsForThisCat.length > 0) {
                     const itemSubcats = item.subcats || (item.subcat ? [item.subcat] : []);
-                    const matchesSelectedSubcat = itemSubcats.some(sub => selectedFilterSubcats.has(sub));
-
-                    if (!matchesSelectedSubcat) {
-                        return false;
-                    }
+                    const matchesSelectedSubcat = itemSubcats.some(subId => selectedFilterSubcats.has(subId));
+                    if (!matchesSelectedSubcat) return false;
                 }
             }
         }
 
-        // 第三層過濾：日期範圍 (改由日曆 UI 選擇)
+        // 第三層過濾：日期多選過濾
         const createdDate = item.createdAt ? new Date(item.createdAt) : new Date(item.id);
+        const dateStr = createdDate.getFullYear() + '-' + String(createdDate.getMonth() + 1).padStart(2, '0') + '-' + String(createdDate.getDate()).padStart(2, '0');
 
-        if (selectedCalendarDate) {
-            // Compare YYYY-MM-DD
-            const itemDateStr = createdDate.getFullYear() + '-' + String(createdDate.getMonth() + 1).padStart(2, '0') + '-' + String(createdDate.getDate()).padStart(2, '0');
-            if (itemDateStr !== selectedCalendarDate) {
-                return false;
-            }
+        if (selectedDates.size > 0 && !selectedDates.has(dateStr)) {
+            return false;
         }
 
         // 第四層過濾：關鍵字
@@ -92,19 +197,21 @@ function renderList() {
         let match = false;
         if (sTitle && item.title && item.title.toLowerCase().includes(keyword)) match = true;
         if (sCat && categoryMap[item.cat] && categoryMap[item.cat].label.toLowerCase().includes(keyword)) match = true;
+        if (sJp && item.jp && item.jp.toLowerCase().includes(keyword)) match = true;
+        if (sEn && item.en && item.en.toLowerCase().includes(keyword)) match = true;
+        if (sNote && item.note && item.note.toLowerCase().includes(keyword)) match = true;
 
         // 子分類關鍵字搜尋
-        const itemSubcats = item.subcats || (item.subcat ? [item.subcat] : []);
-        if (sCat && itemSubcats.length > 0 && categoryMap[item.cat] && categoryMap[item.cat].subcats) {
-            const hasSubcatMatch = itemSubcats.some(subId => {
-                const subData = categoryMap[item.cat].subcats.find(s => s.id === subId);
-                return subData && subData.label.toLowerCase().includes(keyword);
-            });
-            if (hasSubcatMatch) match = true;
+        if (sSubcat) {
+            const itemSubcats = item.subcats || (item.subcat ? [item.subcat] : []);
+            if (itemSubcats.length > 0 && categoryMap[item.cat] && categoryMap[item.cat].subcats) {
+                const hasSubcatMatch = itemSubcats.some(subId => {
+                    const subData = categoryMap[item.cat].subcats.find(s => s.id === subId);
+                    return subData && subData.label.toLowerCase().includes(keyword);
+                });
+                if (hasSubcatMatch) match = true;
+            }
         }
-
-        if (sJp && item.jp && item.jp.toLowerCase().includes(keyword)) match = true;
-        if (item.en && item.en.toLowerCase().includes(keyword)) match = true;
 
         return match;
     });
@@ -479,12 +586,12 @@ window.changeCalendarMonth = function(delta) {
 }
 
 window.selectCalendarDate = function(dateStr) {
-    if (typeof selectedCalendarDate === 'undefined') return;
-    if (selectedCalendarDate === dateStr) {
-        selectedCalendarDate = null; // Toggle off
+    if (selectedDates.has(dateStr)) {
+        selectedDates.delete(dateStr);
     } else {
-        selectedCalendarDate = dateStr; // Toggle on
+        selectedDates.add(dateStr);
     }
+    
     renderCalendar();
     renderList();
 }
@@ -496,15 +603,11 @@ window.renderCalendar = function() {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
 
-    // First day of the month
     const firstDay = new Date(year, month, 1);
-    const startingDay = firstDay.getDay(); // 0 is Sunday
-
-    // Last day of the month
+    const startingDay = firstDay.getDay();
     const lastDay = new Date(year, month + 1, 0);
     const totalDays = lastDay.getDate();
 
-    // Find all unique dates that have notes
     const datesWithNotes = new Set();
     jpData.forEach(item => {
         const d = item.createdAt ? new Date(item.createdAt) : new Date(item.id);
@@ -516,9 +619,9 @@ window.renderCalendar = function() {
 
     let html = `
         <div class="calendar-header">
-            <button onclick="changeCalendarMonth(-1)" title="上個月">&lt;</button>
+            <button onclick="changeCalendarMonth(-1)">&lt;</button>
             <span>${year}年 ${monthNames[month]}</span>
-            <button onclick="changeCalendarMonth(1)" title="下個月">&gt;</button>
+            <button onclick="changeCalendarMonth(1)">&gt;</button>
         </div>
         <div class="calendar-grid">
             <div class="calendar-day-name">日</div>
@@ -530,18 +633,16 @@ window.renderCalendar = function() {
             <div class="calendar-day-name">六</div>
     `;
 
-    // Empty cells before start of month
     for (let i = 0; i < startingDay; i++) {
         html += `<div class="calendar-cell empty"></div>`;
     }
 
-    // Days of the month
     for (let i = 1; i <= totalDays; i++) {
         const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
-        const isSelected = selectedCalendarDate === dateStr ? 'active' : '';
+        const isActive = selectedDates.has(dateStr) ? 'active' : '';
         const hasNote = datesWithNotes.has(dateStr) ? '<div class="dot"></div>' : '';
 
-        html += `<div class="calendar-cell ${isSelected}" onclick="selectCalendarDate('${dateStr}')">
+        html += `<div class="calendar-cell ${isActive}" onclick="selectCalendarDate('${dateStr}')">
                     ${i}
                     ${hasNote}
                  </div>`;

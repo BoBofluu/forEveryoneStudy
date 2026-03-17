@@ -99,22 +99,37 @@ function exportItem(id) {
 }
 
 function exportData() {
-    if (Object.keys(jpData).length === 0) {
+    if (jpData.length === 0) {
         Swal.fire({ icon: 'info', title: '沒有資料可以匯出喔！' });
         return;
     }
-    const dataStr = JSON.stringify(jpData);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `JapanesePractice_Backup_${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+
+    Swal.fire({
+        title: '確定要匯出所有資料嗎？',
+        text: `將會匯出目前的 ${jpData.length} 筆筆記。`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '開始匯出',
+        cancelButtonText: '取消',
+        confirmButtonColor: 'var(--color-grammar)'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const dataStr = JSON.stringify(jpData, null, 4);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `JapanWeb_FullBackup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '匯出成功', showConfirmButton: false, timer: 1500 });
+        }
+    });
 }
 
 function importData() {
-    document.getElementById('importFile').click();
+    const input = document.getElementById('importFile');
+    if (input) input.click();
 }
 
 function handleImport(event) {

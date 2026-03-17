@@ -99,3 +99,80 @@
     font-size: 12px;
     font-weight: 500;
 }
+
+/* 清單控制面板 */
+.list-control-panel {
+    background-color: var(--bg-color);
+    padding: 15px 0;
+    z-index: 95;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.search-input-wrapper {
+    flex: 1;
+}
+
+.sort-select {
+    width: 80px !important;
+    padding: 8px !important;
+    font-size: 13px !important;
+    height: 38px !important;
+}
+
+.checkbox-row {
+    justify-content: space-between;
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.search-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-sub);
+}
+
+.search-options label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+}
+
+.search-options input {
+    width: auto !important;
+    margin-right: 5px;
+}
+
+.option-btns {
+    display: flex;
+    gap: 5px;
+}
+
+.option-btns button {
+    background: none;
+    border: 1px solid #555;
+    color: var(--text-sub);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.filter-trigger {
+    background-color: var(--input-bg) !important;
+    flex: 0 0 180px;
+    justify-content: center;
+}
+
+.mini-calendar {
+    min-width: 120px;
+}

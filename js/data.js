@@ -23,7 +23,7 @@ let selectedFilterSubcats = new Set();
 let currentCatFilter = 'all';
 
 let currentCalendarDate = new Date();
-let selectedCalendarDate = null;
+let selectedDates = new Set(); // 支援點擊複選多個日期 (YYYY-MM-DD)
 let currentInputSubcats = new Set();
 
 // ==== Data Initialization (Hybrid Mode) ====

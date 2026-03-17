@@ -125,6 +125,12 @@ select:focus {
     opacity: 1;
 }
 
+/* 確保詳細頁面的卡片容器不產生 Hover 特效 */
+#pageDetail .item-card:hover {
+    transform: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
 .category-badge {
     padding: 5px 12px;
     border-radius: 6px;
@@ -300,3 +306,21 @@ ruby rt {
     padding-bottom: 0.2em;
     user-select: none;
 }
+
+/* 搜尋選項樣式 */
+.search-options label {
+    transition: color 0.2s;
+}
+.search-options label:hover {
+    color: var(--color-grammar);
+}
+
+/* 篩選彈窗膠囊樣式 */
+.pill-checkbox:hover {
+    background: rgba(255,255,255,0.1) !important;
+    transform: translateY(-1px);
+}
+.pill-checkbox input:checked + span {
+    color: var(--color-grammar);
+}
+
