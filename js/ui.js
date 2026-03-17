@@ -314,36 +314,35 @@ function renderList() {
 }
 
 // 全域狀態
-let tokenizer = null;
+let kuroshiroInstance = null;
 let isInitializingTokenizer = false;
 
 // 【核心優化】獨立初始化函式
 window.initFuriganaEngine = function() {
-    if (tokenizer || isInitializingTokenizer) return;
-    
+    if (kuroshiroInstance || isInitializingTokenizer) return;
+
     isInitializingTokenizer = true;
     console.log("AI 引擎正在背景熱機中...");
-    
-    if (typeof kuromoji === 'undefined') {
-        console.error("Kuromoji 庫未載入");
+
+    if (typeof Kuroshiro === 'undefined' || typeof KuromojiAnalyzer === 'undefined') {
+        console.error("Kuroshiro 庫未載入");
         isInitializingTokenizer = false;
         return;
     }
 
-    // 強制斷開與當前網域的關係，使用明確的完整絕對 URL
     const dicUrl = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
     console.log("正在發起跨網域 AI 辭典請求:", dicUrl);
 
-    // 某些版本的 kuromoji 需要去掉結尾斜線，或者需要明確的 Path
-    kuromoji.builder({ dicPath: dicUrl }).build((err, _tokenizer) => {
-        if (err) {
-            console.error("AI 引擎熱機失敗，錯誤細節:", err);
-            isInitializingTokenizer = false;
-        } else {
-            tokenizer = _tokenizer;
-            isInitializingTokenizer = false;
-            console.log("AI 引擎熱機完成，隨時可以使用。");
-        }
+    const KuroshiroClass = (typeof Kuroshiro.default !== 'undefined') ? Kuroshiro.default : Kuroshiro;
+    const KuromojiAnalyzerClass = (typeof KuromojiAnalyzer.default !== 'undefined') ? KuromojiAnalyzer.default : KuromojiAnalyzer;
+    const instance = new KuroshiroClass();
+    instance.init(new KuromojiAnalyzerClass({ dictPath: dicUrl })).then(() => {
+        kuroshiroInstance = instance;
+        isInitializingTokenizer = false;
+        console.log("AI 引擎熱機完成，隨時可以使用。");
+    }).catch((err) => {
+        console.error("AI 引擎熱機失敗，錯誤細節:", err);
+        isInitializingTokenizer = false;
     });
 };
 
@@ -365,7 +364,7 @@ window.toggleFurigana = async function (itemId) {
         }
 
         // 如果引擎還沒好，提醒使用者
-        if (!tokenizer) {
+        if (!kuroshiroInstance) {
             if (isInitializingTokenizer) {
                 Swal.fire({ icon: 'info', title: 'AI 引擎熱機中', text: '第一次使用需要約 5-10 秒載入辭典，請稍候再試。', timer: 2000, showConfirmButton: false });
             } else {
@@ -379,8 +378,7 @@ window.toggleFurigana = async function (itemId) {
         btn.disabled = true;
 
         try {
-            // 因為 tokenizer 已經預載好了，這裡的 tokenize() 動作會非常快，不會當機
-            const analyzedHtml = processText(text);
+            const analyzedHtml = await processText(text);
             displayBox.innerHTML = `<div lang="ja" class="notranslate">${analyzedHtml}</div>`;
             switchToDisplay();
         } catch (err) {
@@ -408,27 +406,16 @@ window.toggleFurigana = async function (itemId) {
 };
 
 // 獨立出的處理函式
-function processText(rawText) {
-    if (!tokenizer) return rawText;
-    const tokens = tokenizer.tokenize(rawText);
-    let html = "";
-    tokens.forEach(token => {
-        const hasKanji = /[\u4E00-\u9FAF\u3400-\u4DBF]/.test(token.surface_form);
-        if (hasKanji && token.reading && token.reading !== '*') {
-            const reading = katakanaToHiragana(token.reading);
-            if (reading !== token.surface_form) {
-                html += `<ruby><rb>${token.surface_form}</rb><rt>${reading}</rt></ruby>`;
-            } else {
-                html += token.surface_form;
-            }
-        } else {
-            html += token.surface_form;
-        }
-    });
-    return html.replace(/\n/g, '<br>');
+async function processText(rawText) {
+    if (!kuroshiroInstance) return rawText;
+    const lines = rawText.split('\n');
+    const converted = await Promise.all(lines.map(line =>
+        line ? kuroshiroInstance.convert(line, { to: 'hiragana', mode: 'furigana' }) : ''
+    ));
+    return converted.join('<br>');
 }
 
-// 片假名轉平假名工具
+// 片假名轉平假名工具（保留備用）
 function katakanaToHiragana(src) {
     return src.replace(/[\u30a1-\u30f6]/g, function (match) {
         const chr = match.charCodeAt(0) - 0x60;
