@@ -330,10 +330,11 @@ window.initFuriganaEngine = function() {
         return;
     }
 
-    // 最終極路徑解決方案：確保末尾有斜線，且明確指定 CDN
+    // 強制斷開與當前網域的關係，使用明確的完整絕對 URL
     const dicUrl = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
-    console.log("正在從以下路徑載入 AI 辭典:", dicUrl);
+    console.log("正在發起跨網域 AI 辭典請求:", dicUrl);
 
+    // 某些版本的 kuromoji 需要去掉結尾斜線，或者需要明確的 Path
     kuromoji.builder({ dicPath: dicUrl }).build((err, _tokenizer) => {
         if (err) {
             console.error("AI 引擎熱機失敗，錯誤細節:", err);
