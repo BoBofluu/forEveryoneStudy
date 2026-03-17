@@ -317,6 +317,31 @@ function renderList() {
 let tokenizer = null;
 let isInitializingTokenizer = false;
 
+// 【核心優化】獨立初始化函式
+window.initFuriganaEngine = function() {
+    if (tokenizer || isInitializingTokenizer) return;
+    
+    isInitializingTokenizer = true;
+    console.log("AI 引擎正在背景熱機中...");
+    
+    if (typeof kuromoji === 'undefined') {
+        console.error("Kuromoji 庫未載入");
+        isInitializingTokenizer = false;
+        return;
+    }
+
+    kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/" }).build((err, _tokenizer) => {
+        if (err) {
+            console.error("AI 引擎熱機失敗:", err);
+            isInitializingTokenizer = false;
+        } else {
+            tokenizer = _tokenizer;
+            isInitializingTokenizer = false;
+            console.log("AI 引擎熱機完成，隨時可以使用。");
+        }
+    });
+};
+
 window.toggleFurigana = async function (itemId) {
     const textarea = document.getElementById(`detailJp_${itemId}`);
     const displayBox = document.getElementById(`furiganaBox_${itemId}`);
@@ -334,25 +359,27 @@ window.toggleFurigana = async function (itemId) {
             return;
         }
 
-        btn.innerText = 'AI 分析中...';
+        // 如果引擎還沒好，提醒使用者
+        if (!tokenizer) {
+            if (isInitializingTokenizer) {
+                Swal.fire({ icon: 'info', title: 'AI 引擎熱機中', text: '第一次使用需要約 5-10 秒載入辭典，請稍候再試。', timer: 2000, showConfirmButton: false });
+            } else {
+                initFuriganaEngine();
+                Swal.fire({ icon: 'warning', title: '引擎未啟動', text: '正在嘗試重新啟動 AI 引擎，請稍等。' });
+            }
+            return;
+        }
+
+        btn.innerText = '分析中...';
         btn.disabled = true;
 
         try {
-            // 使用帶有逾時機制的分析函式
-            const analyzedHtml = await Promise.race([
-                getAutoFurigana(text),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("分析逾時")), 15000))
-            ]);
-            
+            // 因為 tokenizer 已經預載好了，這裡的 tokenize() 動作會非常快，不會當機
+            const analyzedHtml = processText(text);
             displayBox.innerHTML = `<div lang="ja" class="notranslate">${analyzedHtml}</div>`;
             switchToDisplay();
         } catch (err) {
-            console.error("AI 標註失敗:", err);
-            Swal.fire({ 
-                icon: 'error', 
-                title: '標註失敗', 
-                text: '這可能是因為網路連線不穩或辭典載入失敗。請稍後再試，或檢查您的連線。' 
-            });
+            console.error("分析失敗:", err);
             btn.innerText = '顯示平假名';
             btn.disabled = false;
         }
@@ -375,67 +402,25 @@ window.toggleFurigana = async function (itemId) {
     }
 };
 
-// 強化版全自動標註核心
-async function getAutoFurigana(text) {
-    if (!tokenizer) {
-        if (isInitializingTokenizer) {
-            // 如果已經在初始化，等待一下再試
-            return new Promise((resolve) => {
-                const check = setInterval(() => {
-                    if (tokenizer) {
-                        clearInterval(check);
-                        resolve(processText(text));
-                    }
-                }, 500);
-            });
-        }
-        
-        isInitializingTokenizer = true;
-        return new Promise((resolve, reject) => {
-            if (typeof kuromoji === 'undefined') {
-                isInitializingTokenizer = false;
-                reject(new Error("Kuromoji 庫未載入"));
-                return;
-            }
-
-            kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/" }).build((err, _tokenizer) => {
-                if (err) {
-                    isInitializingTokenizer = false;
-                    reject(err);
-                } else {
-                    tokenizer = _tokenizer;
-                    isInitializingTokenizer = false;
-                    resolve(processText(text));
-                }
-            });
-        });
-    } else {
-        return processText(text);
-    }
-}
-
-// 獨立出的處理函式，避免重複代碼且降低出錯率
+// 獨立出的處理函式
 function processText(rawText) {
-    try {
-        const tokens = tokenizer.tokenize(rawText);
-        let html = "";
-        tokens.forEach(token => {
-            const hasKanji = /[\u4E00-\u9FAF\u3400-\u4DBF]/.test(token.surface_form);
-            if (hasKanji && token.reading && token.reading !== '*') {
-                const reading = katakanaToHiragana(token.reading);
-                if (reading !== token.surface_form) {
-                    html += `<ruby><rb>${token.surface_form}</rb><rt>${reading}</rt></ruby>`;
-                } else {
-                    html += token.surface_form;
-                }
+    if (!tokenizer) return rawText;
+    const tokens = tokenizer.tokenize(rawText);
+    let html = "";
+    tokens.forEach(token => {
+        const hasKanji = /[\u4E00-\u9FAF\u3400-\u4DBF]/.test(token.surface_form);
+        if (hasKanji && token.reading && token.reading !== '*') {
+            const reading = katakanaToHiragana(token.reading);
+            if (reading !== token.surface_form) {
+                html += `<ruby><rb>${token.surface_form}</rb><rt>${reading}</rt></ruby>`;
             } else {
                 html += token.surface_form;
             }
-        });
-        return html.replace(/\n/g, '<br>');
-    } catch (e) {
-        throw new Error("分詞處理錯誤: " + e.message);
-    }
+        } else {
+            html += token.surface_form;
+        }
+    });
+    return html.replace(/\n/g, '<br>');
 }
 
 // 片假名轉平假名工具

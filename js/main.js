@@ -198,16 +198,19 @@ window.toggleInputEn = function () {
 
 // ==== Program Init ====
 async function startApp() {
-    // 1. 先讀取分類資料 (從 JSON 或 LocalStorage)
+    // 1. 先讀取分類資料
     await initData();
     
     // 2. 啟動後渲染各項組件
     if (typeof renderCategories === 'function') renderCategories();
     if (typeof renderTemplateSelects === 'function') renderTemplateSelects();
     if (typeof renderCalendar === 'function') renderCalendar();
-    
-    // 確保清單也根據讀取到的分類顯示
     if (typeof renderList === 'function') renderList();
+
+    // 3. 【新增】提前在背景初始化 AI 平假名引擎
+    if (typeof initFuriganaEngine === 'function') {
+        initFuriganaEngine();
+    }
 }
 
 // 執行程式
