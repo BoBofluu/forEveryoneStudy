@@ -38,25 +38,68 @@
 
 .sticky-header {
     position: sticky;
-    top: 50px; /* Below app-header */
+    top: 50px;
     background-color: var(--bg-color);
     padding: 10px 0;
     z-index: 90;
     border-bottom: 1px solid var(--border-color);
     margin-bottom: 15px;
-    margin-top: -10px; /* To offset some padding if needed */
 }
 
-.search-container {
-    position: sticky;
-    top: 51px;
+.list-control-panel {
     background-color: var(--bg-color);
-    padding: 10px 0;
-    z-index: 90;
-    margin-bottom: 10px;
+    padding: 15px 0;
 }
 
-/* Bottom Tab Bar wrapper */
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.search-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-sub);
+}
+
+.search-options label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+}
+
+.search-options input {
+    width: auto !important;
+    margin-right: 5px;
+}
+
+.sort-select {
+    width: auto !important;
+    padding: 8px !important;
+    font-size: 13px !important;
+    height: 38px !important;
+}
+
+.option-btns {
+    display: flex;
+    gap: 5px;
+}
+
+.option-btns button {
+    background: none;
+    border: 1px solid #555;
+    color: var(--text-sub);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
 .tab-bar {
     position: fixed;
     bottom: 0;
@@ -81,7 +124,6 @@
     color: var(--text-sub);
     background: none;
     border: none;
-    padding: 10px 0;
     cursor: pointer;
     transition: color 0.2s;
 }
@@ -100,79 +142,27 @@
     font-weight: 500;
 }
 
-/* 清單控制面板 */
-.list-control-panel {
-    background-color: var(--bg-color);
-    padding: 15px 0;
-    z-index: 95;
-}
+/* RWD 響應式調整 */
+@media (max-width: 768px) {
+    .list-control-panel > div {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
 
-.control-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
+    #inlineCalendar {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 220px;
+    }
 
-.search-input-wrapper {
-    flex: 1;
-}
+    .filter-trigger {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
 
-.sort-select {
-    width: 80px !important;
-    padding: 8px !important;
-    font-size: 13px !important;
-    height: 38px !important;
-}
-
-.checkbox-row {
-    justify-content: space-between;
-    background: rgba(255,255,255,0.03);
-    padding: 10px;
-    border-radius: 8px;
-}
-
-.search-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    font-size: 13px;
-    color: var(--text-sub);
-}
-
-.search-options label {
-    display: flex;
-    align-items: center;
-    margin: 0;
-    cursor: pointer;
-}
-
-.search-options input {
-    width: auto !important;
-    margin-right: 5px;
-}
-
-.option-btns {
-    display: flex;
-    gap: 5px;
-}
-
-.option-btns button {
-    background: none;
-    border: 1px solid #555;
-    color: var(--text-sub);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-.filter-trigger {
-    background-color: var(--input-bg) !important;
-    flex: 0 0 180px;
-    justify-content: center;
-}
-
-.mini-calendar {
-    min-width: 120px;
+    .list-control-panel .control-row {
+        flex-wrap: wrap;
+    }
 }
