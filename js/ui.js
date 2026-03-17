@@ -330,12 +330,13 @@ window.initFuriganaEngine = function() {
         return;
     }
 
-    // 使用絕對 URL 確保不會被誤認為相對路徑
-    const absoluteDicPath = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
+    // 最終極路徑解決方案：確保末尾有斜線，且明確指定 CDN
+    const dicUrl = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
+    console.log("正在從以下路徑載入 AI 辭典:", dicUrl);
 
-    kuromoji.builder({ dicPath: absoluteDicPath }).build((err, _tokenizer) => {
+    kuromoji.builder({ dicPath: dicUrl }).build((err, _tokenizer) => {
         if (err) {
-            console.error("AI 引擎熱機失敗:", err);
+            console.error("AI 引擎熱機失敗，錯誤細節:", err);
             isInitializingTokenizer = false;
         } else {
             tokenizer = _tokenizer;
