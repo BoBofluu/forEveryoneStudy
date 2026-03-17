@@ -314,39 +314,35 @@ function renderList() {
 }
 
 // 全域狀態
-let kuroshiroInstance = null;
+let tokenizer = null;
 let isInitializingTokenizer = false;
 
 // 【核心優化】獨立初始化函式
 window.initFuriganaEngine = function() {
-    if (kuroshiroInstance || isInitializingTokenizer) return;
+    if (tokenizer || isInitializingTokenizer) return;
 
     isInitializingTokenizer = true;
     console.log("AI 引擎正在背景熱機中...");
 
-    if (typeof Kuroshiro === 'undefined' || typeof KuromojiAnalyzer === 'undefined') {
-        console.error("Kuroshiro 庫未載入");
+    if (typeof kuromoji === 'undefined') {
+        console.error("Kuromoji 庫未載入");
         isInitializingTokenizer = false;
         return;
     }
 
-    const dicUrl = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
-    console.log("正在發起跨網域 AI 辭典請求:", dicUrl);
-
-    const KuroshiroClass = (typeof Kuroshiro.default !== 'undefined') ? Kuroshiro.default : Kuroshiro;
-    const KuromojiAnalyzerClass = (typeof KuromojiAnalyzer.default !== 'undefined') ? KuromojiAnalyzer.default : KuromojiAnalyzer;
-    const instance = new KuroshiroClass();
-    instance.init(new KuromojiAnalyzerClass({ dictPath: dicUrl })).then(() => {
-        kuroshiroInstance = instance;
-        isInitializingTokenizer = false;
-        console.log("AI 引擎熱機完成，隨時可以使用。");
-    }).catch((err) => {
-        console.error("AI 引擎熱機失敗，錯誤細節:", err);
-        isInitializingTokenizer = false;
+    kuromoji.builder({ dicPath: 'dict/' }).build((err, _tokenizer) => {
+        if (err) {
+            console.error("AI 引擎熱機失敗，錯誤細節:", err);
+            isInitializingTokenizer = false;
+        } else {
+            tokenizer = _tokenizer;
+            isInitializingTokenizer = false;
+            console.log("AI 引擎熱機完成，隨時可以使用。");
+        }
     });
 };
 
-window.toggleFurigana = async function (itemId) {
+window.toggleFurigana = function (itemId) {
     const textarea = document.getElementById(`detailJp_${itemId}`);
     const displayBox = document.getElementById(`furiganaBox_${itemId}`);
     const btn = document.getElementById(`btn_toggleFurigana_${itemId}`);
@@ -364,7 +360,7 @@ window.toggleFurigana = async function (itemId) {
         }
 
         // 如果引擎還沒好，提醒使用者
-        if (!kuroshiroInstance) {
+        if (!tokenizer) {
             if (isInitializingTokenizer) {
                 Swal.fire({ icon: 'info', title: 'AI 引擎熱機中', text: '第一次使用需要約 5-10 秒載入辭典，請稍候再試。', timer: 2000, showConfirmButton: false });
             } else {
@@ -378,7 +374,7 @@ window.toggleFurigana = async function (itemId) {
         btn.disabled = true;
 
         try {
-            const analyzedHtml = await processText(text);
+            const analyzedHtml = processText(text);
             displayBox.innerHTML = `<div lang="ja" class="notranslate">${analyzedHtml}</div>`;
             switchToDisplay();
         } catch (err) {
@@ -406,13 +402,24 @@ window.toggleFurigana = async function (itemId) {
 };
 
 // 獨立出的處理函式
-async function processText(rawText) {
-    if (!kuroshiroInstance) return rawText;
-    const lines = rawText.split('\n');
-    const converted = await Promise.all(lines.map(line =>
-        line ? kuroshiroInstance.convert(line, { to: 'hiragana', mode: 'furigana' }) : ''
-    ));
-    return converted.join('<br>');
+function processText(rawText) {
+    if (!tokenizer) return rawText;
+    const tokens = tokenizer.tokenize(rawText);
+    let html = "";
+    tokens.forEach(token => {
+        const hasKanji = /[\u4E00-\u9FAF\u3400-\u4DBF]/.test(token.surface_form);
+        if (hasKanji && token.reading && token.reading !== '*') {
+            const reading = katakanaToHiragana(token.reading);
+            if (reading !== token.surface_form) {
+                html += `<ruby><rb>${token.surface_form}</rb><rt>${reading}</rt></ruby>`;
+            } else {
+                html += token.surface_form;
+            }
+        } else {
+            html += token.surface_form;
+        }
+    });
+    return html.replace(/\n/g, '<br>');
 }
 
 // 片假名轉平假名工具（保留備用）
