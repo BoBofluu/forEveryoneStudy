@@ -1,0 +1,60 @@
+{
+    "vocab": {
+        "label": "單字",
+        "subcats": [
+            {
+                "id": "sub_1773112389229",
+                "label": "動詞"
+            },
+            {
+                "id": "sub_1773112411479",
+                "label": "い形容詞"
+            },
+            {
+                "id": "sub_1773112420208",
+                "label": "な形容詞"
+            },
+            {
+                "id": "sub_1773112454892",
+                "label": "名詞"
+            }
+        ],
+        "customColor": "#60a5fa"
+    },
+    "grammar": {
+        "label": "文法",
+        "subcats": [],
+        "customColor": "#fb923c"
+    },
+    "idiom": {
+        "label": "慣用句",
+        "subcats": [],
+        "customColor": "#c084fc"
+    },
+    "other": {
+        "label": "工作",
+        "subcats": [
+            {
+                "id": "sub_1773109569879",
+                "label": "朝會"
+            },
+            {
+                "id": "sub_1773109585138",
+                "label": "タスク確認"
+            },
+            {
+                "id": "sub_1773111574964",
+                "label": "請假"
+            },
+            {
+                "id": "sub_1773134031881",
+                "label": "チャット定例"
+            },
+            {
+                "id": "sub_1773622140300",
+                "label": "工作雜談"
+            }
+        ],
+        "customColor": "#4ade80"
+    }
+}

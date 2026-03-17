@@ -1,0 +1,80 @@
+/* css/calendar.css */
+
+.inline-calendar {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px; /* compact */
+    font-weight: bold;
+    color: var(--text-main);
+    font-size: 11px; /* smaller header */
+}
+
+.calendar-header button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-sub);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.calendar-header button:active {
+    background: rgba(0,0,0,0.05);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px; /* compact */
+    text-align: center;
+    font-size: 11px; /* smaller text */
+}
+
+.calendar-day-name {
+    font-weight: bold;
+    color: var(--text-sub);
+    margin-bottom: 2px;
+    font-size: 10px;
+}
+
+.calendar-cell {
+    position: relative;
+    padding: 4px 0;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.calendar-cell:hover:not(.empty) {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.calendar-cell.active {
+    background-color: var(--color-grammar); /* Theme color */
+    color: #121212;
+    font-weight: bold;
+}
+
+.calendar-cell .dot {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    background-color: var(--color-danger);
+    border-radius: 50%;
+}
+
+.calendar-cell.empty {
+    cursor: default;
+}

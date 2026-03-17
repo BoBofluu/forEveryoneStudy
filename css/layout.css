@@ -1,0 +1,101 @@
+/* css/layout.css */
+
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgba(18, 18, 18, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+    font-size: 18px;
+    margin: 0;
+    font-weight: 600;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 60px auto 0 auto;
+    padding: 0 15px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 50px; /* Below app-header */
+    background-color: var(--bg-color);
+    padding: 10px 0;
+    z-index: 90;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+    margin-top: -10px; /* To offset some padding if needed */
+}
+
+.search-container {
+    position: sticky;
+    top: 51px;
+    background-color: var(--bg-color);
+    padding: 10px 0;
+    z-index: 90;
+    margin-bottom: 10px;
+}
+
+/* Bottom Tab Bar wrapper */
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--tabbar-height);
+    background-color: rgba(26, 26, 26, 0.98);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-sub);
+    background: none;
+    border: none;
+    padding: 10px 0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.tab-item.active {
+    color: var(--color-grammar);
+}
+
+.tab-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.tab-label {
+    font-size: 12px;
+    font-weight: 500;
+}

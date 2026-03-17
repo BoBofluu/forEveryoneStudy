@@ -1,0 +1,53 @@
+/* css/base.css */
+
+/* 基礎設定與深色模式 */
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --input-bg: #2c2c2c;
+    --border-color: #3f3f3f;
+    --text-main: #ffffff;
+    --text-sub: #b3b3b3;
+    --border-radius: 12px;
+
+    /* 分類顏色 */
+    --color-vocab: #4ade80;
+    --color-grammar: #60a5fa;
+    --color-idiom: #f472b6;
+    --color-other: #fb923c;
+
+    /* 按鈕顏色 */
+    --color-danger: #ff6b6b;
+    --color-btn-dark: #333;
+    --color-btn-dark-active: #444;
+
+    --tabbar-height: 65px;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-bottom: calc(var(--tabbar-height) + 20px);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
