@@ -89,3 +89,23 @@ function duplicateItem(id) {
     
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '已新增衍生項目', showConfirmButton: false, timer: 1500 });
 }
+
+// ==== Scroll to Top Logic ====
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('scrollToTopBtn');
+    if (!btn) return;
+    
+    // 當捲動超過 300px 時顯示按鈕
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+        btn.style.display = 'flex';
+    } else {
+        btn.style.display = 'none';
+    }
+}, { passive: true });
+
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}

@@ -4,7 +4,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     height: 50px;
     background-color: rgba(18, 18, 18, 0.95);
     display: flex;
@@ -43,27 +43,68 @@
     padding: 10px 0;
     z-index: 90;
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: 15px;
 }
 
+/* --- 清單控制面板核心 (穩定固定版) --- */
 .list-control-panel {
     background-color: var(--bg-color);
     padding: 15px 0;
 }
 
-.control-row {
+.header-main-container {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 20px;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
+.header-left-part {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.header-top-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+}
+
+#searchInput {
+    flex: 1;
+    height: 38px;
+}
+
+.header-collapsible-part {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.header-button-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.header-calendar-part {
+    flex: 0 0 240px;
+}
+
+/* 搜尋選項樣式 */
 .search-options {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     font-size: 13px;
     color: var(--text-sub);
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    border-radius: 8px;
 }
 
 .search-options label {
@@ -104,7 +145,7 @@
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     height: var(--tabbar-height);
     background-color: rgba(26, 26, 26, 0.98);
     border-top: 1px solid var(--border-color);
@@ -124,6 +165,7 @@
     color: var(--text-sub);
     background: none;
     border: none;
+    padding: 10px 0;
     cursor: pointer;
     transition: color 0.2s;
 }
@@ -144,25 +186,22 @@
 
 /* RWD 響應式調整 */
 @media (max-width: 768px) {
-    .list-control-panel > div {
+    .header-main-container {
         flex-direction: column !important;
-        gap: 15px !important;
+        gap: 12px !important;
     }
 
-    #inlineCalendar {
-        flex: 1 1 auto !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        height: auto !important;
-        min-height: 220px;
-    }
-
-    .filter-trigger {
-        max-width: 100% !important;
+    .header-calendar-part {
+        flex: none !important;
         width: 100% !important;
     }
 
-    .list-control-panel .control-row {
-        flex-wrap: wrap;
+    .header-button-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .header-button-row .action-btn {
+        width: 100% !important;
     }
 }

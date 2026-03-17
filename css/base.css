@@ -29,6 +29,13 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+html {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+    overflow-y: scroll; /* 關鍵：強制顯示捲動條，防止版面左右晃動 */
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-main);

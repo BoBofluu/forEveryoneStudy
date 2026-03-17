@@ -324,3 +324,35 @@ ruby rt {
     color: var(--color-grammar);
 }
 
+
+/* 回到頂部懸浮按鈕 */
+.scroll-to-top {
+    position: fixed;
+    bottom: calc(var(--tabbar-height) + 20px);
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background-color: var(--color-grammar);
+    color: #121212;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: none; /* 預設隱藏 */
+    z-index: 99;
+    transition: transform 0.2s, background-color 0.2s;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroll-to-top:hover {
+    transform: scale(1.1);
+    background-color: #ffffff;
+}
+
+.scroll-to-top:active {
+    transform: scale(0.9);
+}
+
