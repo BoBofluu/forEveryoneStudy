@@ -330,7 +330,10 @@ window.initFuriganaEngine = function() {
         return;
     }
 
-    kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/" }).build((err, _tokenizer) => {
+    // 使用絕對 URL 確保不會被誤認為相對路徑
+    const absoluteDicPath = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
+
+    kuromoji.builder({ dicPath: absoluteDicPath }).build((err, _tokenizer) => {
         if (err) {
             console.error("AI 引擎熱機失敗:", err);
             isInitializingTokenizer = false;
