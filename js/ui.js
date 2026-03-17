@@ -313,8 +313,9 @@ function renderList() {
     });
 }
 
-// 全域分詞器變數
+// 全域狀態
 let tokenizer = null;
+let isInitializingTokenizer = false;
 
 window.toggleFurigana = async function (itemId) {
     const textarea = document.getElementById(`detailJp_${itemId}`);
@@ -333,17 +334,25 @@ window.toggleFurigana = async function (itemId) {
             return;
         }
 
-        // --- 全自動標註模式 ---
-        btn.innerText = '引擎啟動中...';
+        btn.innerText = 'AI 分析中...';
         btn.disabled = true;
 
         try {
-            const analyzedHtml = await getAutoFurigana(text);
+            // 使用帶有逾時機制的分析函式
+            const analyzedHtml = await Promise.race([
+                getAutoFurigana(text),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("分析逾時")), 15000))
+            ]);
+            
             displayBox.innerHTML = `<div lang="ja" class="notranslate">${analyzedHtml}</div>`;
             switchToDisplay();
         } catch (err) {
-            console.error("自動標註失敗:", err);
-            Swal.fire({ icon: 'error', title: '自動標註失敗', text: '請檢查網路連線或稍後再試。' });
+            console.error("AI 標註失敗:", err);
+            Swal.fire({ 
+                icon: 'error', 
+                title: '標註失敗', 
+                text: '這可能是因為網路連線不穩或辭典載入失敗。請稍後再試，或檢查您的連線。' 
+            });
             btn.innerText = '顯示平假名';
             btn.disabled = false;
         }
@@ -366,62 +375,67 @@ window.toggleFurigana = async function (itemId) {
     }
 };
 
-// 全自動標註核心函式
+// 強化版全自動標註核心
 async function getAutoFurigana(text) {
-    return new Promise((resolve, reject) => {
-        // 設定超時機制，避免無限等待
-        const timeout = setTimeout(() => {
-            if (!tokenizer) reject("辭典載入超時，請檢查網路連線或稍後再試。");
-        }, 10000);
-
-        if (!tokenizer) {
+    if (!tokenizer) {
+        if (isInitializingTokenizer) {
+            // 如果已經在初始化，等待一下再試
+            return new Promise((resolve) => {
+                const check = setInterval(() => {
+                    if (tokenizer) {
+                        clearInterval(check);
+                        resolve(processText(text));
+                    }
+                }, 500);
+            });
+        }
+        
+        isInitializingTokenizer = true;
+        return new Promise((resolve, reject) => {
             if (typeof kuromoji === 'undefined') {
-                clearTimeout(timeout);
-                reject("Kuromoji 引擎未載入，請確認 HTML 中已引入腳本。");
+                isInitializingTokenizer = false;
+                reject(new Error("Kuromoji 庫未載入"));
                 return;
             }
-            // 使用 jsdelivr 的特定版本辭典路徑，通常較穩定
+
             kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/" }).build((err, _tokenizer) => {
-                clearTimeout(timeout);
                 if (err) {
-                    reject("引擎初始化失敗: " + err.message);
+                    isInitializingTokenizer = false;
+                    reject(err);
                 } else {
                     tokenizer = _tokenizer;
-                    process(text);
+                    isInitializingTokenizer = false;
+                    resolve(processText(text));
                 }
             });
-        } else {
-            clearTimeout(timeout);
-            process(text);
-        }
+        });
+    } else {
+        return processText(text);
+    }
+}
 
-        function process(rawText) {
-            try {
-                const tokens = tokenizer.tokenize(rawText);
-                let html = "";
-                tokens.forEach(token => {
-                    // 只有包含漢字的詞才需要 ruby
-                    const hasKanji = /[\u4E00-\u9FAF\u3400-\u4DBF]/.test(token.surface_form);
-                    
-                    if (hasKanji && token.reading && token.reading !== '*') {
-                        // 將片假名讀音轉為平假名
-                        const reading = katakanaToHiragana(token.reading);
-                        // 如果讀音跟原本表面文字一樣（例如純漢字沒讀音），就不標註
-                        if (reading !== token.surface_form) {
-                            html += `<ruby><rb>${token.surface_form}</rb><rt>${reading}</rt></ruby>`;
-                        } else {
-                            html += token.surface_form;
-                        }
-                    } else {
-                        html += token.surface_form;
-                    }
-                });
-                resolve(html.replace(/\n/g, '<br>'));
-            } catch (e) {
-                reject("分詞處理錯誤: " + e.message);
+// 獨立出的處理函式，避免重複代碼且降低出錯率
+function processText(rawText) {
+    try {
+        const tokens = tokenizer.tokenize(rawText);
+        let html = "";
+        tokens.forEach(token => {
+            const hasKanji = /[\u4E00-\u9FAF\u3400-\u4DBF]/.test(token.surface_form);
+            if (hasKanji && token.reading && token.reading !== '*') {
+                const reading = katakanaToHiragana(token.reading);
+                if (reading !== token.surface_form) {
+                    html += `<ruby><rb>${token.surface_form}</rb><rt>${reading}</rt></ruby>`;
+                } else {
+                    html += token.surface_form;
+                }
+            } else {
+                html += token.surface_form;
             }
-        }
-    });
+        });
+        return html.replace(/\n/g, '<br>');
+    } catch (e) {
+        throw new Error("分詞處理錯誤: " + e.message);
+    }
 }
 
 // 片假名轉平假名工具
