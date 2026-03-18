@@ -322,22 +322,18 @@ window.initFuriganaEngine = function() {
     if (tokenizer || isInitializingTokenizer) return;
 
     isInitializingTokenizer = true;
-    console.log("AI 引擎正在背景熱機中...");
 
     if (typeof kuromoji === 'undefined') {
-        console.error("Kuromoji 庫未載入");
         isInitializingTokenizer = false;
         return;
     }
 
     kuromoji.builder({ dicPath: 'dict/' }).build((err, _tokenizer) => {
         if (err) {
-            console.error("AI 引擎熱機失敗，錯誤細節:", err);
             isInitializingTokenizer = false;
         } else {
             tokenizer = _tokenizer;
             isInitializingTokenizer = false;
-            console.log("AI 引擎熱機完成，隨時可以使用。");
         }
     });
 };
