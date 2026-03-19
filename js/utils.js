@@ -33,7 +33,7 @@ function copyToClipboard(elementId) {
             toast: true,
             position: 'top-end',
             icon: 'success',
-            title: '已複製內容！',
+            title: t('msg_copied'),
             showConfirmButton: false,
             timer: 1500,
             timerProgressBar: true
@@ -71,9 +71,10 @@ function duplicateItem(id) {
 
     const newItem = {
         ...originalItem,
-        id: Date.now(), // 賦予新 ID
-        title: originalItem.title ? originalItem.title + ' (複製)' : '複製的筆記',
-        createdAt: new Date().toISOString()
+        id: Date.now(),
+        title: originalItem.title ? originalItem.title + t('msg_duplicate_title_suffix') : t('msg_duplicate_success'),
+        createdAt: new Date().toISOString(),
+        subcats: originalItem.subcats ? [...originalItem.subcats] : []
     };
 
     jpData.unshift(newItem);
@@ -87,7 +88,7 @@ function duplicateItem(id) {
         switchPage('list');
     }
     
-    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '已新增衍生項目', showConfirmButton: false, timer: 1500 });
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: t('msg_duplicate_success'), showConfirmButton: false, timer: 1500 });
 }
 
 // ==== Scroll to Top Logic ====

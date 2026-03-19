@@ -261,6 +261,7 @@ select:focus {
 }
 
 /* SweetAlert 客製化調整 */
+
 div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm) {
     background-color: var(--color-grammar);
     color: #121212;
@@ -354,5 +355,36 @@ ruby rt {
 
 .scroll-to-top:active {
     transform: scale(0.9);
+}
+
+
+/* 子分類膠囊基礎樣式 */
+.subcat-pill {
+    padding: 6px 14px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+}
+
+.subcat-pill:hover {
+    border-color: var(--color-grammar);
+    color: var(--text-main);
+}
+
+.subcat-pill.active {
+    background-color: var(--color-grammar);
+    color: #121212;
+    border-color: var(--color-grammar);
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 

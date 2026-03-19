@@ -4,9 +4,9 @@
 
 // 更新所有的 select 內容
 function renderTemplateSelects() {
-    let optionsHtml = '<option value="">(無)</option>';
-    templates.forEach(t => {
-        optionsHtml += `<option value="${t.id}">${t.name}</option>`;
+    let optionsHtml = `<option value="">(${t('msg_no_content')})</option>`;
+    templates.forEach(tpl => {
+        optionsHtml += `<option value="${tpl.id}">${tpl.name}</option>`;
     });
 
     const inputSelect = document.getElementById('inputTemplateSelect');
@@ -18,51 +18,42 @@ function renderTemplateSelects() {
 }
 
 window.manageTemplates = async function () {
-    if (templates.length === 0) {
-        Swal.fire('目前沒有自訂模板喔！', '請先新增模板。', 'info');
-        return;
-    }
-
     let htmlContent = '<div style="text-align:left; height:400px; overflow-y:auto; margin-top:10px;">';
-    templates.forEach(t => {
-        htmlContent += `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background-color:var(--input-bg); margin-bottom:8px; border-radius:8px;">
-            <div style="flex-grow:1; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:10px;">${t.name}</div>
-            <div>
-                <button onclick="editSingleTemplate('${t.id}')" style="background:var(--color-grammar); border:none; color:#121212; padding:5px 10px; border-radius:5px; margin-right:5px; cursor:pointer;">編輯</button>
-                <button onclick="deleteSingleTemplate('${t.id}')" style="background:var(--color-danger); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">刪除</button>
-            </div>
-        </div>`;
-    });
+    if (templates.length === 0) {
+        htmlContent += `<div style="text-align:center; color:var(--text-sub); padding:40px 0;">${t('msg_no_template')}</div>`;
+    } else {
+        templates.forEach(tpl => {
+            htmlContent += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background-color:var(--input-bg); margin-bottom:8px; border-radius:8px;">
+                <div style="flex-grow:1; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:10px;">${tpl.name}</div>
+                <div>
+                    <button onclick="editSingleTemplate('${tpl.id}')" style="background:var(--color-grammar); border:none; color:#121212; padding:5px 10px; border-radius:5px; margin-right:5px; cursor:pointer;">${t('btn_edit')}</button>
+                    <button onclick="deleteSingleTemplate('${tpl.id}')" style="background:var(--color-danger); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">${t('btn_delete')}</button>
+                </div>
+            </div>`;
+        });
+    }
     htmlContent += '</div>';
 
-    Swal.fire({
-        title: '管理自訂模板',
+    const result = await Swal.fire({
+        title: t('btn_manage_template'),
         html: htmlContent,
         width: '500px',
         showConfirmButton: true,
-        confirmButtonText: '新增模板',
+        confirmButtonText: t('btn_add_template'),
         confirmButtonColor: '#4ade80',
         showCloseButton: true,
-        customClass: {
-            htmlContainer: 'custom-scroll-container'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            addNewTemplate();
-        }
+        customClass: { htmlContainer: 'custom-scroll-container' }
     });
+    if (result.isConfirmed) addNewTemplate();
 };
 
 window.editSingleTemplate = async function (id) {
-    const target = templates.find(t => t.id === id);
+    const target = templates.find(tpl => tpl.id === id);
     if (!target) return;
 
-    // 先關閉管理視窗
-    Swal.close();
-
     const result = await Swal.fire({
-        title: '編輯模板',
+        title: t('btn_edit'),
         html:
             `<div style="height:400px; display:flex; flex-direction:column; gap:10px;">` +
             `<input id="swal-template-name" class="swal2-input" value="${target.name}" style="margin:0; width:100%;">` +
@@ -72,12 +63,13 @@ window.editSingleTemplate = async function (id) {
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonColor: '#4ade80',
-        confirmButtonText: '儲存',
+        confirmButtonText: t('btn_confirm'),
+        cancelButtonText: t('btn_cancel'),
         preConfirm: () => {
             const name = document.getElementById('swal-template-name').value;
             const content = document.getElementById('swal-template-content').value;
             if (!name.trim() || !content.trim()) {
-                Swal.showValidationMessage('名稱和內容不能為空');
+                Swal.showValidationMessage(t('msg_required_field'));
                 return false;
             }
             return { name, content };
@@ -85,58 +77,52 @@ window.editSingleTemplate = async function (id) {
     });
 
     if (result.isConfirmed && result.value) {
-        const formValues = result.value;
-        target.name = formValues.name;
-        target.content = formValues.content;
+        target.name = result.value.name;
+        target.content = result.value.content;
         localStorage.setItem('jpTemplates', JSON.stringify(templates));
         renderTemplateSelects();
-        manageTemplates();
-    } else if (result.isDismissed) {
-        manageTemplates();
     }
+    manageTemplates();
 };
 
 window.deleteSingleTemplate = function (id) {
     Swal.fire({
-        title: '確定要刪除嗎？',
+        title: t('msg_delete_confirm'),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ff6b6b',
-        confirmButtonText: '刪除',
-        cancelButtonText: '取消'
+        confirmButtonText: t('btn_delete'),
+        cancelButtonText: t('btn_cancel')
     }).then((result) => {
         if (result.isConfirmed) {
-            templates = templates.filter(t => t.id !== id);
+            templates = templates.filter(tpl => tpl.id !== id);
             localStorage.setItem('jpTemplates', JSON.stringify(templates));
             renderTemplateSelects();
-            // 重新打開管理視窗刷新畫面
-            manageTemplates();
-        } else if (result.isDismissed) {
-            manageTemplates();
         }
+        manageTemplates();
     });
 };
 
 window.addNewTemplate = async function () {
     const result = await Swal.fire({
-        title: '新增模板',
+        title: t('btn_add_template'),
         html:
             `<div style="height:400px; display:flex; flex-direction:column; gap:10px;">` +
-            `<input id="swal-template-name" class="swal2-input" placeholder="模板名稱 (例如: 請假信)" style="margin:0; width:100%;">` +
-            `<textarea id="swal-template-content" class="swal2-textarea" placeholder="模板內容..." style="margin:0; width:100%; flex-grow:1; resize:none;"></textarea>` +
+            `<input id="swal-template-name" class="swal2-input" placeholder="${t('label_title')}" style="margin:0; width:100%;">` +
+            `<textarea id="swal-template-content" class="swal2-textarea" placeholder="${t('placeholder_content')}" style="margin:0; width:100%; flex-grow:1; resize:none;"></textarea>` +
             `</div>`,
         width: '500px',
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonColor: '#4ade80',
         cancelButtonColor: '#3f3f3f',
-        confirmButtonText: '儲存',
-        cancelButtonText: '取消',
+        confirmButtonText: t('btn_confirm'),
+        cancelButtonText: t('btn_cancel'),
         preConfirm: () => {
             const name = document.getElementById('swal-template-name').value;
             const content = document.getElementById('swal-template-content').value;
             if (!name.trim() || !content.trim()) {
-                Swal.showValidationMessage('模板名稱和內容都不能為空喔！');
+                Swal.showValidationMessage(t('msg_required_field'));
                 return false;
             }
             return { name, content };
@@ -144,20 +130,13 @@ window.addNewTemplate = async function () {
     });
 
     if (result.isConfirmed && result.value) {
-        const formValues = result.value;
-        templates.push({
-            id: 'tpl_' + Date.now(),
-            name: formValues.name,
-            content: formValues.content
-        });
+        templates.push({ id: 'tpl_' + Date.now(), name: result.value.name, content: result.value.content });
         localStorage.setItem('jpTemplates', JSON.stringify(templates));
         renderTemplateSelects();
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '新增成功', showConfirmButton: false, timer: 1500 });
-        manageTemplates();
-    } else if (result.isDismissed) {
-        manageTemplates();
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: t('msg_save_success'), showConfirmButton: false, timer: 1500 });
     }
-}
+    manageTemplates();
+};
 
 window.insertTemplate = function(targetInputId, selectId, itemId = null) {
     const textArea = document.getElementById(targetInputId);
@@ -166,11 +145,10 @@ window.insertTemplate = function(targetInputId, selectId, itemId = null) {
 
     const selectedTemplateId = selectEl.value;
     if (!selectedTemplateId) {
-        Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: '請先選擇模板', showConfirmButton: false, timer: 1500 });
         return;
     }
 
-    const template = templates.find(t => t.id === selectedTemplateId);
+    const template = templates.find(tpl => tpl.id === selectedTemplateId);
     if (!template) return;
 
     const doInsert = () => {
@@ -183,14 +161,14 @@ window.insertTemplate = function(targetInputId, selectId, itemId = null) {
 
     if (textArea.value.trim() !== '') {
         Swal.fire({
-            title: '確定要覆蓋嗎？',
-            text: '輸入框內已經有內容了，插入模板會清空目前的文字喔！',
+            title: t('btn_confirm'),
+            text: t('msg_insert_template_confirm'),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ff6b6b',
             cancelButtonColor: '#3f3f3f',
-            confirmButtonText: '確定覆蓋',
-            cancelButtonText: '取消'
+            confirmButtonText: t('btn_confirm'),
+            cancelButtonText: t('btn_cancel')
         }).then((result) => {
             if (result.isConfirmed) {
                 doInsert();

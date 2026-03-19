@@ -48,7 +48,7 @@ async function initData() {
         
     } catch (error) {
         console.error('Error initializing data:', error);
-        categoryMap = { 'other': { label: '其他', class: 'cat-other', subcats: [] } };
+        categoryMap = { 'other': { label: t('cat_other_label'), class: 'cat-other', subcats: [] } };
         selectedFilterCats = new Set(['other']);
     }
 }

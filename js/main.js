@@ -10,7 +10,7 @@ function saveItem() {
     const category = document.getElementById('categoryInput').value;
 
     if (!jpText && !enText) {
-        Swal.fire({ icon: 'error', title: 'Oops...', text: '請至少輸入一種內容喔！' });
+        Swal.fire({ icon: 'error', title: 'Oops...', text: t('msg_save_no_content') });
         return;
     }
 
@@ -42,19 +42,20 @@ function saveItem() {
     if (typeof handleCategoryChange === 'function') handleCategoryChange();
 
     if (typeof switchPage === 'function') switchPage('list');
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: t('msg_save_success'), showConfirmButton: false, timer: 1500 });
 }
 
 function deleteItem(id, event) {
     if (event) event.stopPropagation();
 
     Swal.fire({
-        title: '確定要刪除這筆筆記嗎？',
+        title: t('msg_delete_item_confirm'),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ff6b6b',
         cancelButtonColor: '#3f3f3f',
-        confirmButtonText: '刪除',
-        cancelButtonText: '取消'
+        confirmButtonText: t('btn_delete'),
+        cancelButtonText: t('btn_cancel')
     }).then((result) => {
         if (result.isConfirmed) {
             jpData = jpData.filter(item => item.id !== id);
@@ -66,7 +67,7 @@ function deleteItem(id, event) {
                 if (typeof switchPage === 'function') switchPage('list');
             }
 
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '已刪除', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: t('msg_delete_success'), showConfirmButton: false, timer: 1500 });
         }
     });
 }
@@ -83,7 +84,7 @@ function autoSave(id, field, value) {
 function exportItem(id) {
     const item = jpData.find(i => i.id === id);
     if (!item) {
-        Swal.fire({ icon: 'error', title: '找不到資料' });
+        Swal.fire({ icon: 'error', title: t('msg_no_data') });
         return;
     }
     // 包裝成陣列，這樣匯入時格式會統一
@@ -100,17 +101,17 @@ function exportItem(id) {
 
 function exportData() {
     if (jpData.length === 0) {
-        Swal.fire({ icon: 'info', title: '沒有資料可以匯出喔！' });
+        Swal.fire({ icon: 'info', title: t('msg_export_empty') });
         return;
     }
 
     Swal.fire({
-        title: '確定要匯出所有資料嗎？',
-        text: `將會匯出目前的 ${jpData.length} 筆筆記。`,
+        title: t('msg_export_confirm_title'),
+        text: t('msg_export_confirm_text').replace('{count}', jpData.length),
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: '開始匯出',
-        cancelButtonText: '取消',
+        confirmButtonText: t('msg_export_start'),
+        cancelButtonText: t('btn_cancel'),
         confirmButtonColor: 'var(--color-grammar)'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -122,7 +123,7 @@ function exportData() {
             a.download = `JapanWeb_FullBackup_${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '匯出成功', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: t('msg_export_success'), showConfirmButton: false, timer: 1500 });
         }
     });
 }
@@ -140,34 +141,34 @@ function handleImport(event) {
     reader.onload = function (e) {
         try {
             const importedData = JSON.parse(e.target.result);
-            if (!Array.isArray(importedData)) throw new Error('資料格式不正確');
+            if (!Array.isArray(importedData)) throw new Error(t('msg_import_invalid'));
 
             Swal.fire({
-                title: '匯入資料',
-                text: '您想要「覆蓋」現有資料，還是「合併」進去？',
+                title: t('msg_import_title'),
+                text: t('msg_import_merge_text'),
                 icon: 'question',
                 showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: '合併資料',
-                denyButtonText: '全部覆蓋',
-                cancelButtonText: '取消',
+                confirmButtonText: t('msg_import_merge'),
+                denyButtonText: t('msg_import_overwrite'),
+                cancelButtonText: t('btn_cancel'),
                 confirmButtonColor: '#4ade80',
                 denyButtonColor: '#ff6b6b'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    jpData = [...importedData, ...jpData]; // 合併
+                    jpData = [...importedData, ...jpData];
                     if (typeof saveToLocal === 'function') saveToLocal();
                     if (typeof renderList === 'function') renderList();
-                    Swal.fire('合併成功', '', 'success');
+                    Swal.fire(t('msg_import_merge_success'), '', 'success');
                 } else if (result.isDenied) {
-                    jpData = importedData; // 覆蓋
+                    jpData = importedData;
                     if (typeof saveToLocal === 'function') saveToLocal();
                     if (typeof renderList === 'function') renderList();
-                    Swal.fire('覆蓋成功', '', 'success');
+                    Swal.fire(t('msg_import_overwrite_success'), '', 'success');
                 }
             });
         } catch (error) {
-            Swal.fire('錯誤', '匯入失敗，請確認是否為正確的備份檔 (*.json)', 'error');
+            Swal.fire('Error', t('msg_import_invalid'), 'error');
         }
         event.target.value = ''; // 讓同一個檔案可以再次選擇
     };
@@ -187,17 +188,20 @@ window.toggleInputEn = function () {
 
     if (section.style.display === 'none') {
         section.style.display = 'block';
-        btn.innerText = '隱藏英文欄位';
+        btn.innerText = t('btn_hide_en');
         const textarea = document.getElementById('enInput');
         if (textarea && typeof autoResize === 'function') autoResize(textarea);
     } else {
         section.style.display = 'none';
-        btn.innerText = '顯示英文欄位';
+        btn.innerText = t('btn_show_en');
     }
 };
 
 // ==== Program Init ====
 async function startApp() {
+    // 0. 初始化多國語言
+    if (typeof initI18n === 'function') await initI18n();
+
     // 1. 先讀取分類資料
     await initData();
     

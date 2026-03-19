@@ -19,7 +19,7 @@
 <body>
 
     <header class="app-header">
-        <h1 id="pageTitle">日文學習口袋書</h1>
+        <h1 id="pageTitle" data-i18n="app_title">日文學習口袋書</h1>
     </header>
 
     <main class="main-content">
@@ -27,101 +27,97 @@
             <div class="input-group" style="display: flex; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
                 <!-- 左欄：分類 (50%) -->
                 <div style="flex: 1; min-width: 300px;">
-                    <label style="display: block; margin-bottom: 10px;">分類</label>
+                    <label style="display: block; margin-bottom: 10px;" data-i18n="label_category">分類</label>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <select id="categoryInput" onchange="handleCategoryChange()"
                             style="flex: 1; height: 38px; margin-bottom: 0; padding: 6px 12px;">
                         </select>
                         <button class="action-btn" onclick="manageCategories()"
-                            style="font-size: 13px; height: 38px; padding: 0 15px; background-color: var(--input-bg); border: 1px solid #555; white-space: nowrap;">管理分類</button>
+                            style="font-size: 13px; height: 38px; padding: 0 15px; background-color: var(--input-bg); border: 1px solid #555; white-space: nowrap;" data-i18n="btn_manage_category">管理分類</button>
                     </div>
                 </div>
 
                 <!-- 右欄：子分類 (50%) -->
                 <div style="flex: 1; min-width: 300px;">
-                    <label style="display: block; margin-bottom: 10px;">子分類 (選填 - 可複選)</label>
+                    <label style="display: block; margin-bottom: 10px;" data-i18n="label_subcategory">子分類</label>
                     <div id="subcategoryPills"
                         style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 38px; align-items: center;">
-                        <span style="color: var(--text-sub); font-size: 13px;">請先選擇主分類</span>
+                        <span style="color: var(--text-sub); font-size: 13px;" data-i18n="msg_select_cat_first">請先選擇主分類</span>
                     </div>
                 </div>
             </div>
 
             <div class="input-group">
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <label style="margin-bottom:0;">標題 (選填)</label>
+                    <label style="margin-bottom:0;" data-i18n="label_title">標題</label>
                     <button id="btn_toggleInputEn" class="action-btn" onclick="toggleInputEn()"
-                        style="font-size:12px; padding:4px 12px; background-color:var(--input-bg); border:1px solid #555;">顯示英文欄位</button>
+                        style="font-size:12px; padding:4px 12px; background-color:var(--input-bg); border:1px solid #555;" data-i18n="btn_show_en">顯示英文欄位</button>
                 </div>
-                <input type="text" id="titleInput" placeholder="這篇筆記的標題..." style="margin-top:10px;">
+                <input type="text" id="titleInput" placeholder="這篇筆記的標題..." style="margin-top:10px;" data-i18n="placeholder_title">
             </div>
 
             <div id="enInputGroup" class="input-group" style="display:none; margin-bottom: 20px;">
-                <label>英文內容</label>
+                <label data-i18n="label_en_content">英文內容</label>
                 <textarea id="enInput" oninput="autoResize(this)"
-                    placeholder="例：The hotel can accommodate up to 500 guests." style="margin-top:10px;"></textarea>
+                    placeholder="請輸入內容..." style="margin-top:10px;" data-i18n="placeholder_content"></textarea>
             </div>
 
             <div class="input-group">
                 <label style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
-                    <span id="jpInputLabel">日文內容</span>
+                    <span id="jpInputLabel" data-i18n="label_content">內容</span>
                 </label>
                 <div class="jp-action-bar">
                     <select class="template-select" id="inputTemplateSelect"></select>
-                    <button class="action-btn" onclick="insertTemplate('jpInput', 'inputTemplateSelect')">插入模板</button>
-                    <button class="action-btn" onclick="manageTemplates()">管理模板</button>
+                    <button class="action-btn" onclick="insertTemplate('jpInput', 'inputTemplateSelect')" data-i18n="btn_insert_template">插入模板</button>
+                    <button class="action-btn" onclick="manageTemplates()" data-i18n="btn_manage_template">管理模板</button>
                 </div>
-                <textarea id="jpInput" oninput="autoResize(this)" placeholder="例：お手数をおかけしますが"></textarea>
+                <textarea id="jpInput" oninput="autoResize(this)" placeholder="請輸入內容..." data-i18n="placeholder_content"></textarea>
             </div>
 
             <div class="input-group">
-                <label>備註 / 中文解釋</label>
-                <textarea id="noteInput" oninput="autoResize(this)" placeholder="輸入中文解釋或使用情境..."></textarea>
+                <label data-i18n="label_note">備註</label>
+                <textarea id="noteInput" oninput="autoResize(this)" placeholder="請輸入備註..." data-i18n="placeholder_note"></textarea>
             </div>
 
-            <button class="submit-btn" onclick="saveItem()">儲存到清單</button>
+            <button class="submit-btn" onclick="saveItem()" data-i18n="btn_save">儲存到清單</button>
         </div>
 
         <div id="pageList" class="page">
             <div class="list-control-panel sticky-header">
                 <div class="header-main-container">
-                    <!-- 左側區域 -->
                     <div class="header-left-part">
-                        <!-- 頂層：搜尋與排序 -->
                         <div class="header-top-row">
-                            <input type="text" id="searchInput" placeholder="搜尋關鍵字..." onkeyup="renderList()">
+                            <input type="text" id="searchInput" placeholder="搜尋關鍵字..." onkeyup="renderList()" data-i18n="placeholder_search">
                             <select id="sortOrder" onchange="renderList()" class="sort-select">
-                                <option value="newest">最新</option>
-                                <option value="oldest">最舊</option>
+                                <option value="newest" data-i18n="sort_newest">最新</option>
+                                <option value="oldest" data-i18n="sort_oldest">最舊</option>
                             </select>
                         </div>
 
-                        <!-- 可摺疊區域 -->
                         <div id="collapsibleArea" class="header-collapsible-part">
                             <div class="search-options" id="searchOptionsContainer">
-                                <label><input type="checkbox" id="searchTitle" checked onchange="renderList()">標題</label>
-                                <label><input type="checkbox" id="searchCat" checked onchange="renderList()">分類</label>
-                                <label><input type="checkbox" id="searchJp" checked onchange="renderList()">日文</label>
-                                <label><input type="checkbox" id="searchEn" checked onchange="renderList()">英文</label>
-                                <label><input type="checkbox" id="searchNote" checked onchange="renderList()">備註</label>
-                                <label><input type="checkbox" id="searchSubcat" checked onchange="renderList()">子分類</label>
+                                <label><input type="checkbox" id="searchTitle" checked onchange="renderList()"><span data-i18n="label_title">標題</span></label>
+                                <label><input type="checkbox" id="searchCat" checked onchange="renderList()"><span data-i18n="label_category">分類</span></label>
+                                <label><input type="checkbox" id="searchJp" checked onchange="renderList()"><span data-i18n="label_content">內容</span></label>
+                                <label><input type="checkbox" id="searchEn" checked onchange="renderList()"><span data-i18n="label_en_content">英文內容</span></label>
+                                <label><input type="checkbox" id="searchNote" checked onchange="renderList()"><span data-i18n="label_note">備註</span></label>
+                                <label><input type="checkbox" id="searchSubcat" checked onchange="renderList()"><span data-i18n="label_subcategory">子分類</span></label>
                                 <div class="option-btns">
-                                    <button onclick="toggleSearchCheckboxes(true)">全選</button>
-                                    <button onclick="toggleSearchCheckboxes(false)">清除</button>
+                                    <button onclick="toggleSearchCheckboxes(true)" data-i18n="all">全選</button>
+                                    <button onclick="toggleSearchCheckboxes(false)" data-i18n="clear">清除</button>
                                 </div>
                             </div>
                             <div class="header-button-row">
-                                <button class="action-btn filter-trigger" onclick="openFilterModal()">
-                                    🔍 篩選分類
+                                <button class="action-btn filter-trigger" onclick="openFilterModal()" data-i18n="btn_filter">
+                                    篩選分類
                                 </button>
-                                <button class="action-btn" onclick="exportData()">📤 匯出資料</button>
-                                <button class="action-btn" onclick="importData()">📥 匯入資料</button>
+                                <button class="action-btn" onclick="exportData()" data-i18n="btn_export_all">匯出資料</button>
+                                <button class="action-btn" onclick="importData()" data-i18n="btn_import_all">匯入資料</button>
                                 <input type="file" id="importFile" style="display:none;" accept=".json" onchange="handleImport(event)">
                             </div>
                         </div>
                     </div>
 
-                    <!-- 右側區域：行事曆 -->
                     <div id="calendarWrapper" class="header-calendar-part">
                         <div id="inlineCalendar" class="mini-calendar"></div>
                     </div>
@@ -131,10 +127,35 @@
             <div id="listContainer"></div>
         </div>
 
+        <!-- 3. 設定頁面 -->
+        <div id="pageSettings" class="page">
+            <div class="settings-container" style="max-width: 600px; margin: 20px auto; display: flex; flex-direction: column; gap: 20px;">
+                <div class="item-card" style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <span style="font-size: 16px; font-weight: bold;" data-i18n="btn_switch_lang">切換語言</span>
+                        <span style="font-size: 12px; color: var(--text-sub);" id="currentLangLabel">繁體中文</span>
+                    </div>
+                    <button class="action-btn" onclick="openLanguageModal()" style="width: auto; padding: 8px 20px; background-color: var(--input-bg); border: 1px solid #555;">
+                        <span data-i18n="btn_switch_lang">切換語言</span>
+                    </button>
+                </div>
+                <div class="item-card" style="padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <span style="font-size: 16px; font-weight: bold;" data-i18n="label_gemini_api_key">Gemini API Key</span>
+                        <span style="font-size: 12px; color: var(--text-sub);" data-i18n="desc_gemini_api_key">從 Google AI Studio 取得 API Key，儲存後才能使用 AI 語音朗讀功能。</span>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="password" id="geminiApiKeyInput" style="flex: 1;" placeholder="貼上你的 Gemini API Key..." data-i18n="placeholder_gemini_api_key">
+                            <button class="action-btn" onclick="saveGeminiApiKey()" data-i18n="btn_save_key">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="pageDetail" class="page">
             <div class="sticky-header">
                 <button class="back-btn" onclick="switchPage('list')">
-                    <span style="margin-right:5px;font-size:20px;"></span> 返回清單
+                    <span style="margin-right:5px;font-size:20px;"></span> <span data-i18n="btn_back">返回清單</span>
                 </button>
             </div>
             <div id="detailContainer" class="item-card"></div>
@@ -144,11 +165,15 @@
     <nav class="tab-bar">
         <button class="tab-item active" onclick="switchPage('input')" id="tabInput">
             <span class="tab-icon"></span>
-            <span class="tab-label">輸入</span>
+            <span class="tab-label" data-i18n="tab_input">輸入</span>
         </button>
         <button class="tab-item" onclick="switchPage('list')" id="tabList">
             <span class="tab-icon"></span>
-            <span class="tab-label">清單</span>
+            <span class="tab-label" data-i18n="tab_list">清單</span>
+        </button>
+        <button class="tab-item" onclick="switchPage('settings')" id="tabSettings">
+            <span class="tab-icon"></span>
+            <span class="tab-label" data-i18n="tab_settings">設定</span>
         </button>
     </nav>
 
@@ -156,6 +181,7 @@
         ↑
     </button>
 
+    <script src="js/i18n.js"></script>
     <script src="js/data.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/tts.js"></script>
