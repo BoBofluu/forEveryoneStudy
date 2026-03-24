@@ -1,7 +1,12 @@
 import useLocalStorage from './useLocalStorage';
 
 function useWords() {
-  const [words, setWords] = useLocalStorage('jpLearningData_v2', []);
+  const [storedValue, setStoredValue] = useLocalStorage('jpLearningData_v2', []);
+
+  // 確保 words 永遠是陣列，相容物件格式與異常資料
+  const words = Array.isArray(storedValue) 
+    ? storedValue 
+    : (storedValue && typeof storedValue === 'object' && Array.isArray(storedValue.words) ? storedValue.words : []);
 
   const addWord = (word) => {
     const newWord = {
@@ -9,22 +14,31 @@ function useWords() {
       id: Date.now().toString(),
       created_at: new Date().toISOString(),
     };
-    setWords(prev => [newWord, ...prev]);
+    setStoredValue(prev => {
+      const currentWords = Array.isArray(prev) ? prev : (prev?.words || []);
+      return [newWord, ...currentWords];
+    });
   };
 
   const updateWord = (id, updatedFields) => {
-    setWords(prevWords => prevWords.map(w => w.id === id ? { ...w, ...updatedFields } : w));
+    setStoredValue(prev => {
+      const currentWords = Array.isArray(prev) ? prev : (prev?.words || []);
+      return currentWords.map(w => w.id === id ? { ...w, ...updatedFields } : w);
+    });
   };
 
   const deleteWord = (id) => {
-    setWords(prevWords => prevWords.filter(w => w.id !== id));
+    setStoredValue(prev => {
+      const currentWords = Array.isArray(prev) ? prev : (prev?.words || []);
+      return currentWords.filter(w => w.id !== id);
+    });
   };
 
   const getWord = (id) => {
     return words.find(w => w.id === id);
   };
 
-  return { words, addWord, updateWord, deleteWord, getWord, setWords };
+  return { words, addWord, updateWord, deleteWord, getWord };
 }
 
 export default useWords;
