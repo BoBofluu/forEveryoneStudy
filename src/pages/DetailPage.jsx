@@ -134,9 +134,9 @@ function DetailPage({ wordId, getWord, onBack, onUpdate, onDelete, onAdd, catego
             <div className="animate-in fade-in duration-300">
                 <AppField label={t('label_en_content')}>
                     <AppButton text={t('btn_copy')} action={() => handleCopyText(editedWord.en_content)} />
-                    <AppButton text="🇺🇸" action={() => handleSpeak(editedWord.en_content, 'en-US')} />
-                    <AppButton text="🇬🇧" action={() => handleSpeak(editedWord.en_content, 'en-GB')} />
-                    <AppButton text="🇦🇺" action={() => handleSpeak(editedWord.en_content, 'en-AU')} />
+                    <AppButton text={t('btn_tts_en_us')} action={() => handleSpeak(editedWord.en_content, 'en-US')} />
+                    <AppButton text={t('btn_tts_en_gb')} action={() => handleSpeak(editedWord.en_content, 'en-GB')} />
+                    <AppButton text={t('btn_tts_en_au')} action={() => handleSpeak(editedWord.en_content, 'en-AU')} />
                 </AppField>
                 <AppTextArea value={editedWord.en_content} onChange={(e) => handleChange('en_content', e.target.value)} className="mt-3" />
             </div>
