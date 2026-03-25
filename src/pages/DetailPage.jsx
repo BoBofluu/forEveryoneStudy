@@ -136,6 +136,7 @@ function DetailPage({ wordId, getWord, onBack, onUpdate, onDelete, onAdd, catego
                     <AppButton text={t('btn_copy')} action={() => handleCopyText(editedWord.en_content)} />
                     <AppButton text="🇺🇸" action={() => handleSpeak(editedWord.en_content, 'en-US')} />
                     <AppButton text="🇬🇧" action={() => handleSpeak(editedWord.en_content, 'en-GB')} />
+                    <AppButton text="🇦🇺" action={() => handleSpeak(editedWord.en_content, 'en-AU')} />
                 </AppField>
                 <AppTextArea value={editedWord.en_content} onChange={(e) => handleChange('en_content', e.target.value)} className="mt-3" />
             </div>
@@ -153,9 +154,9 @@ function DetailPage({ wordId, getWord, onBack, onUpdate, onDelete, onAdd, catego
                     <AppButton text={t('btn_tts_jp')} action={() => handleSpeak(editedWord.jp_content, ttsLang)} icon={<Play size={12} fill="currentColor" />} />
                 </div>
             </AppField>
-            <div className="mt-3 min-h-[150px]">
+            <div className="mt-3">
                 {showFurigana ? (
-                    <div className="w-full bg-[#2c2c2c] border-2 border-[#3f3f3f] rounded-2xl p-5 text-[1.25rem] leading-[2.5] animate-in fade-in duration-300">
+                    <div className="w-full bg-[#2c2c2c] border-2 border-[#3f3f3f] rounded-2xl p-5 text-[1.25rem] leading-[2.5]">
                         {editedWord.jp_content ? <FuriganaText text={editedWord.jp_content} /> : <span className="text-[#444] italic text-[14px]">{t('msg_no_content')}</span>}
                     </div>
                 ) : (
@@ -164,8 +165,10 @@ function DetailPage({ wordId, getWord, onBack, onUpdate, onDelete, onAdd, catego
             </div>
         </div>
 
-        <AppField label={t('label_note')} />
-        <AppTextArea value={editedWord.note} onChange={(e) => handleChange('note', e.target.value)} minHeight="80px" className="mt-3 italic text-[#888]" />
+        <div>
+            <AppField label={t('label_note')} />
+            <AppTextArea value={editedWord.note} onChange={(e) => handleChange('note', e.target.value)} minHeight="80px" className="mt-3 italic text-[#888]" />
+        </div>
 
         <button onClick={handleDelete} className="mt-4 flex items-center justify-center gap-2 w-full py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all active:scale-[0.98] focus:outline-none shadow-sm">{t('btn_delete_item')}</button>
       </div>
